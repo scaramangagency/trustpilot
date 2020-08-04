@@ -1,0 +1,44 @@
+{
+    "name": "scaramangagency/trustpilot",
+    "description": "Interact with Trustpilot APIs",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "trustpilot"
+    ],
+    "support": {
+        "docs": "https://github.com/scaramangagency/trustpilot/blob/master/README.md",
+        "issues": "https://github.com/scaramangagency/trustpilot/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Scaramanga Agency",
+            "homepage": "https://scaramanga.agency"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "scaramangagency\\trustpilot\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Trustpilot",
+        "handle": "trustpilot",
+        "developer": "Scaramanga Agency",
+        "developerUrl": "https://scaramanga.agency",
+        "documentationUrl": "https://github.com/scaramangagency/trustpilot/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/scaramangagency/trustpilot/master/CHANGELOG.md",
+        "components": {
+            "trustpilotService": "scaramangagency\\trustpilot\\services\\TrustpilotService"
+        },
+        "class": "scaramangagency\\trustpilot\\Trustpilot"
+    }
+}
