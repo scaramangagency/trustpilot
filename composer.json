@@ -22,7 +22,9 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0"
+        "craftcms/cms": "^3.1.0",
+        "curl/curl": "^2.3",
+        "putyourlightson/craft-log-to-file": "^1.2"
     },
     "autoload": {
         "psr-4": {

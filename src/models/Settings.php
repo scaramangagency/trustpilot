@@ -28,19 +28,33 @@ class Settings extends Model
     /**
      * @var string
      */
-    public $someAttribute = 'Some Default';
+    public $apiKey;
+    public $apiSecret;
+    public $trustpilotUsername;
+    public $trustpilotPassword;
 
+
+    public $accessToken;
+    public $refreshToken;
+    public $expiresIn;
+    public $createdTimestamp;
+    public $invitationSenderEmail;
+    public $invitationSenderName;
+    public $invitationReplyToEmail;
+
+    public $sendCommerceInvitations = false;
     // Public Methods
     // =========================================================================
 
     /**
      * @inheritdoc
      */
-    public function rules()
-    {
+    public function rules() {
         return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
+            [['apiKey', 'apiSecret', 'trustpilotUsername', 'trustpilotPassword'], 'required'],
+            [['accessToken', 'refreshToken', 'expiresIn', 'createdTimestamp',
+              'invitationSenderEmail', 'invitationSenderName', 'invitationReplyToEmail'], 'string'],
+            ['sendCommerceInvitations', 'boolean'] 
         ];
     }
 }

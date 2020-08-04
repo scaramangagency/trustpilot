@@ -20,7 +20,7 @@ use craft\base\Component;
  * @package   Trustpilot
  * @since     1.0.0
  */
-class TrustpilotService extends Component
+class ResourcesService extends Component
 {
     // Public Methods
     // =========================================================================
