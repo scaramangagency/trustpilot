@@ -199,4 +199,73 @@ class ProductReviewsService extends Component
 
         return $result;
     }
+
+    /**
+     * Gets a single private product review
+     * 
+     * @param string $reviewId
+     * @param string $locale
+     *
+     * @return bool|JSON
+     */
+    public function getPrivateProductReviewById(string $reviewId, string $locale = 'en-GB') {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+
+        if (!$token) {
+            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->setHeader('Authorization', 'Bearer ' . $token);
+        $result->get('https://api.trustpilot.com/v1/private/product-reviews/' . $reviewId, array(
+            'page' => $page,
+            'locale' => $locale,
+        ));
+
+        $result = $result->response;
+        
+        if (!isset($result->product)) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Return all product reviews
+     * 
+     * @param string $businessUnitId
+     * @param int $page
+     * @param string $orderBy [createdat.asc, createdat.desc, stars.asc or stars.desc]
+     * @param string $state [published, unpublished, underModeration, archived]
+     *
+     * @return bool|JSON
+     */
+    public function getPrivateProductReviews(string $businessUnitId, int $page = 0, string $orderBy = 'createdat.desc', string $state = 'published') {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+
+        if (!$token) {
+            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->setHeader('Authorization', 'Bearer ' . $token);
+        $result->get('https://api.trustpilot.com/v1/private/product-reviews/business-units/' . $businessUnitId . '/reviews', array(
+            'page' => $page,
+            'orderBy' => $orderBy,
+            'perPage' => 100
+        ));
+
+        $result = $result->response;
+        
+        if (!isset($result->reviews)) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        return $result;
+    }
 }
