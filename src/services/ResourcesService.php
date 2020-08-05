@@ -25,15 +25,44 @@ class ResourcesService extends Component
     // Public Methods
     // =========================================================================
 
-    /*
-     * @return mixed
+    /**
+     * This resource shows you the different sizes that are available, as well as the URLs for the images.
+     * 
+     * @return bool|JSON
      */
-    public function exampleService()
-    {
-        $result = 'something';
-        // Check our Plugin's settings for `someAttribute`
-        if (Trustpilot::$plugin->getSettings()->someAttribute) {
+    public function getTrustpilotIcons() {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
         }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/resources/images/icons');
+
+        $result = $result->response;
+
+        return $result;
+    }
+
+    /**
+     * This resource shows you the different sizes that are available, as well as the URLs for the images.
+     * 
+     * @return bool|JSON
+     */
+    public function getTrustpilotLogos() {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/resources/images/logos');
+
+        $result = $result->response;
 
         return $result;
     }
