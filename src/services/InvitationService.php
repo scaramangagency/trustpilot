@@ -77,10 +77,6 @@ class InvitationService extends Component
             'senderName' => Craft::parseEnv(Trustpilot::$plugin->getSettings()->invitationSenderName),
             'serviceReviewInvitation' => $serviceReviewInvitation
         );
-        
-        if (Craft::parseEnv(Trustpilot::$plugin->getSettings()->sendCommerceInvitations)) {
-            array_push($data, $products); 
-        }
 
         return $result->post('https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/email-invitation', $data);
     }

@@ -1,29 +1,25 @@
 <?php
 /**
- * craftagram plugin for Craft CMS 3.x
+ * Trustpilot plugin for Craft CMS 3.x
  *
- * Grab Instagram content through the Instagram Basic Display API
+ * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
  * @copyright Copyright (c) 2020 Scaramanga Agency
  */
 
-namespace scaramangagency\craftagram\migrations;
+namespace scaramangagency\trustpilot\migrations;
 
-use scaramangagency\craftagram\Craftagram;
+use scaramangagency\trustpilot\Trustpilot;
 
 use Craft;
 use craft\config\DbConfig;
 use craft\db\Migration;
 
 /**
- * Class Craftagram
- *
  * @author    Scaramanga Agency
- * @package   Craftagram
- * @since     1.2.0
- *
- * @property  CraftagramServiceService $craftagramService
+ * @package   Trustpilot
+ * @since     1.0.0
  */
 class Install extends Migration {
     // Public Properties

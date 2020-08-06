@@ -41,8 +41,6 @@ class Settings extends Model
     public $invitationSenderEmail;
     public $invitationSenderName;
     public $invitationReplyToEmail;
-
-    public $sendCommerceInvitations = false;
     // Public Methods
     // =========================================================================
 
@@ -51,10 +49,9 @@ class Settings extends Model
      */
     public function rules() {
         return [
-            [['apiKey', 'apiSecret', 'trustpilotUsername', 'trustpilotPassword'], 'required'],
-            [['accessToken', 'refreshToken', 'expiresIn', 'createdTimestamp',
-              'invitationSenderEmail', 'invitationSenderName', 'invitationReplyToEmail'], 'string'],
-            ['sendCommerceInvitations', 'boolean'] 
+            [['apiKey', 'apiSecret', 'trustpilotUsername', 'trustpilotPassword',
+              'invitationSenderEmail', 'invitationSenderName', 'invitationReplyToEmail'], 'required'],
+            [['accessToken', 'refreshToken', 'expiresIn', 'createdTimestamp'], 'string']
         ];
     }
 }

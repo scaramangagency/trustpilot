@@ -1,0 +1,24 @@
+{% requirePermission "trustpilot:settings" %}
+
+{% extends "_layouts/cp" %}
+
+{% import "_includes/forms" as forms %}
+
+{% set tabs = {
+    "general": { label: "General", url: "#general" },
+    "api": { label: "API", url: "#api" }
+} %}
+
+{% set fullPageForm = true %}
+{% set title = 'Settings' %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% set content %}
+
+    <input type="hidden" name="action" value="trustpilot/settings/save-plugin-settings">
+    {{ csrfInput() }}
+
+    {% include "trustpilot/settings/pages/_general.twig" %}
+    {% include "trustpilot/settings/pages/_api.twig" %}
+
+{% endset %}

@@ -1,0 +1,49 @@
+{% import "_includes/forms" as forms %}
+
+<div id="api" class="hidden">
+    {% namespace "settings" %}
+        {{ forms.autosuggestField({
+            label: 'Trustpilot API Key',
+            id: 'apiKey',
+            name: 'apiKey',
+            required: 'required',
+            value: settings.apiKey,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('apiKey')})
+        }}
+
+        {{ forms.autosuggestField({
+            label: 'Trustpilot API Secret',
+            id: 'apiSecret',
+            name: 'apiSecret',
+            required: 'required',
+            value: settings.apiSecret,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('apiSecret')})
+        }}
+
+        {{ forms.autosuggestField({
+            label: 'Trustpilot Username',
+            id: 'trustpilotUsername',
+            name: 'trustpilotUsername',
+            required: 'required',
+            value: settings.trustpilotUsername,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('trustpilotUsername')})
+        }}
+
+        {{ forms.autosuggestField({
+            label: 'Trustpilot Password',
+            id: 'trustpilotPassword',
+            name: 'trustpilotPassword',
+            required: 'required',
+            value: settings.trustpilotPassword,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('trustpilotPassword')})
+        }}
+    {% endnamespace %}
+</div>
