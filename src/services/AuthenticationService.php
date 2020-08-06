@@ -24,7 +24,7 @@ use Curl\Curl;
  * @package   Trustpilot
  * @since     1.0.0
  */
-class TrustpilotService extends Component
+class AuthenticationService extends Component
 {
     public static function API_KEY() { return Craft::parseEnv(Trustpilot::$plugin->getSettings()->apiKey); }
     public static function API_SECRET() { return Craft::parseEnv(Trustpilot::$plugin->getSettings()->apiSecret); }
@@ -41,7 +41,7 @@ class TrustpilotService extends Component
      */
     public function getAccessToken() {
         $configRecord = TrustpilotRecord::findOne(1); 
-        $createdStamp = $configRecord->getAttribute('createdTimestamp');
+        $createdStamp = strtotime($configRecord->getAttribute('createdTimestamp'));
         $expiresIn = $configRecord->getAttribute('expiresIn');
 
         if (!$configRecord || ($createdStamp + $expiresIn) < time()) {
@@ -57,7 +57,7 @@ class TrustpilotService extends Component
      * @return string
      */
     public function getApiKey() {
-        return TrustpilotService::API_KEY;
+        return self::API_KEY();
     }
 
     /**
@@ -67,12 +67,12 @@ class TrustpilotService extends Component
      */
     public function setAccessToken() {
         $result = new Curl();
-        $result->setHeader('Authorization', 'Basic ' . base64_encode(TrustpilotService::API_KEY . ':' . TrustpilotService::API_SECRET));
+        $result->setHeader('Authorization', 'Basic ' . base64_encode(self::API_KEY() . ':' . self::API_SECRET()));
         $result->setHeader('Content-Type', 'application/x-www-form-urlencoded');
         $result->post('https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/accesstoken', array(
             'grant_type' => 'password',
-            'username' => TrustpilotService::TRUSTPILOT_USERNAME,
-            'password' => TrustpilotService::TRUSTPILOT_PASSWORD
+            'username' => self::TRUSTPILOT_USERNAME(),
+            'password' => self::TRUSTPILOT_PASSWORD()
         ));
 
         $payload = $result->response;
@@ -92,7 +92,7 @@ class TrustpilotService extends Component
      */
     public function refreshAccessToken() {
         $result = new Curl();
-        $result->setHeader('Authorization', 'Basic ' . base64_encode(TrustpilotService::API_KEY . ':' . TrustpilotService::API_SECRET));
+        $result->setHeader('Authorization', 'Basic ' . base64_encode(self::API_KEY() . ':' . self::API_SECRET()));
         $result->setHeader('Content-Type', 'application/x-www-form-urlencoded');
         $result->post('https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/refresh', array(
             'grant_type' => 'refresh_token',
@@ -146,7 +146,8 @@ class TrustpilotService extends Component
             $configRecord->setAttribute('accessToken', $payload->access_token);
             $configRecord->setAttribute('refreshToken', $payload->refresh_token);
             $configRecord->setAttribute('expiresIn', $payload->expires_in);
-            $configRecord->setAttribute('createdTimestamp', time());
+            $configRecord->setAttribute('createdTimestamp', date('Y-m-d H:m:s', time()));
+            $configRecord->setAttribute('dateUpdated', date('Y-m-d H:m:s', time()));
             $configRecord->save();
 
             return $payload->access_token;

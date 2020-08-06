@@ -38,9 +38,14 @@ class Settings extends Model
     public $refreshToken;
     public $expiresIn;
     public $createdTimestamp;
+
+    public $trustpilotUrl;
     public $invitationSenderEmail;
     public $invitationSenderName;
     public $invitationReplyToEmail;
+
+    public $businessUnitId;
+
     // Public Methods
     // =========================================================================
 
@@ -50,7 +55,7 @@ class Settings extends Model
     public function rules() {
         return [
             [['apiKey', 'apiSecret', 'trustpilotUsername', 'trustpilotPassword',
-              'invitationSenderEmail', 'invitationSenderName', 'invitationReplyToEmail'], 'required'],
+              'invitationSenderEmail', 'invitationSenderName', 'invitationReplyToEmail', 'trustpilotUrl'], 'required'],
             [['accessToken', 'refreshToken', 'expiresIn', 'createdTimestamp'], 'string']
         ];
     }

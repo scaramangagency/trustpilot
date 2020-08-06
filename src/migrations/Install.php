@@ -66,14 +66,16 @@ class Install extends Migration {
             $this->createTable(
                 '{{%trustpilot_settings}}',
                 [
-                    'id'                => $this->primaryKey(),
-                    'accessToken'       => $this->text(),
-                    'refreshToken'      => $this->text(),
-                    'expiresIn'         => $this->text(),
-                    'createdTimestamp'  => $this->dateTime()->notNull(),
-                    'dateCreated'       => $this->dateTime()->notNull(),
-                    'dateUpdated'       => $this->dateTime()->notNull(),
-                    'uid'               => $this->uid()
+                    'id'                    => $this->primaryKey(),
+                    'accessToken'           => $this->text(),
+                    'refreshToken'          => $this->text(),
+                    'businessUnitId'        => $this->text(),
+                    'currentTrustpilotUrl'  => $this->text(),
+                    'expiresIn'             => $this->text(),
+                    'createdTimestamp'      => $this->dateTime()->notNull(),
+                    'dateCreated'           => $this->dateTime()->notNull(),
+                    'dateUpdated'           => $this->dateTime()->notNull(),
+                    'uid'                   => $this->uid()
                 ]
             );
         }

@@ -12,6 +12,7 @@ namespace scaramangagency\trustpilot\services;
 
 use scaramangagency\trustpilot\Trustpilot;
 use scaramangagency\trustpilot\services\AuthenticationService;
+use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
 
 use Craft;
 use craft\base\Component;
@@ -57,37 +58,6 @@ class BusinessUnitsService extends Component
         $result = $result->response;
         
         if (!isset($result->reviews)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns the business unit given by the provided name
-     * 
-     * @param string $name
-     *
-     * @return bool|JSON
-     */
-    public function findBusinessUnit(string $name) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/find', array(
-            'name' => $name,
-            'apikey' => $apiKey
-        ));
-
-        $result = $result->response;
-        
-        if (!isset($result->displayName)) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
         }
@@ -465,5 +435,81 @@ class BusinessUnitsService extends Component
         }
 
         return $result;
+    }
+
+
+    /**
+     * Returns the business unit if it exists in the database, or grabs it from the API if not
+     * 
+     * @param string $name
+     *
+     * @return bool|JSON
+     */
+    public function returnBusinessUnit(string $name) {
+        $reinit = false;
+
+        $configRecord = TrustpilotRecord::findOne(1);
+        if (!$configRecord) {
+            $reinit = true;
+        }
+
+        if ($configRecord) {
+            $currentTrustpilotUrl = $configRecord->getAttribute('currentTrustpilotUrl') ?? null;
+            $businessUnitId = $configRecord->getAttribute('businessUnitId') ?? null;
+            
+            if ($name != $currentTrustpilotUrl || is_null($businessUnitId)) {
+                $reinit = true;
+            }
+        }
+        
+        
+        if ($reinit) {
+            return Trustpilot::$plugin->businessUnitsService->findBusinessUnit($name);
+        }
+
+        return $businessUnitId;
+    }
+
+    public function findBusinessUnit(string $name) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/find', array(
+            'name' => $name,
+            'apikey' => $apiKey
+        ));
+
+        $result = json_decode($result->response);
+        
+        if (!isset($result->displayName)) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        $plugin = Craft::$app->getPlugins()->getPlugin('trustpilot');
+
+        if ($plugin !== null) {
+            $configRecord = TrustpilotRecord::findOne(1);
+            
+            if (!$configRecord) {
+                $configRecord = new TrustpilotRecord();
+            }
+
+            $configRecord->setAttribute('currentTrustpilotUrl', $name);
+            $configRecord->setAttribute('businessUnitId', $result->id);
+            $configRecord->setAttribute('createdTimestamp', date('Y-m-d H:m:s', time()));
+            $configRecord->setAttribute('dateCreated', date('Y-m-d H:m:s', time()));
+            $configRecord->setAttribute('dateUpdated', date('Y-m-d H:m:s', time()));
+            $configRecord->save();
+
+            return $result->id;
+        }
+
+        return false;
     }
 }

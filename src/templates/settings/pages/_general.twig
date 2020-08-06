@@ -4,6 +4,18 @@
 
     {% namespace "settings" %}
         {{ forms.autosuggestField({
+            label: 'Trustpilot Website URL',
+            instructions: 'Enter the URL linked to your Trustpilot account',
+            id: 'trustpilotUrl',
+            name: 'trustpilotUrl',
+            required: 'required',
+            value: settings.trustpilotUrl,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('trustpilotUrl')})
+        }}
+
+        {{ forms.autosuggestField({
             label: 'Invitation Sender Email',
             instructions: 'Which email address should Trustpilot invitations be sent from?',
             id: 'invitationSenderEmail',

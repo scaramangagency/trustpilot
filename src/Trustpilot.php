@@ -10,7 +10,6 @@
 
 namespace scaramangagency\trustpilot;
 
-use scaramangagency\trustpilot\services\TrustpilotService as TrustpilotServiceService;
 use scaramangagency\trustpilot\variables\TrustpilotVariable;
 use scaramangagency\trustpilot\models\Settings;
 
@@ -32,7 +31,6 @@ use yii\base\Event;
  * @package   Trustpilot
  * @since     1.0.0
  *
- * @property  TrustpilotServiceService $trustpilotService
  */
 class Trustpilot extends Plugin
 {
@@ -64,7 +62,7 @@ class Trustpilot extends Plugin
 
     // Public Methods
     // =========================================================================
-
+    
      /**
      * @inheritdoc
      */
@@ -93,6 +91,11 @@ class Trustpilot extends Plugin
     {
         parent::init();
         self::$plugin = $this;
+
+        $this->setComponents([
+            'authenticationService' => \scaramangagency\trustpilot\services\AuthenticationService::class,
+            'businessUnitsService' => \scaramangagency\trustpilot\services\BusinessUnitsService::class,
+        ]);
 
         Event::on(
             CraftVariable::class,

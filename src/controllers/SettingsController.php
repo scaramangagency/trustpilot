@@ -11,7 +11,6 @@
 namespace scaramangagency\trustpilot\controllers;
 
 use scaramangagency\trustpilot\Trustpilot;
-use scaramangagency\trustpilot\services\TrustpilotService;
 use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
 
 use Craft;

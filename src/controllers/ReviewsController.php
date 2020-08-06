@@ -11,8 +11,8 @@
 namespace scaramangagency\trustpilot\controllers;
 
 use scaramangagency\trustpilot\Trustpilot;
-use scaramangagency\trustpilot\services\TrustpilotService;
 use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
+use scaramangagency\trustpilot\services\BusinessUnitsService;
 
 use Craft;
 use craft\web\Controller;
@@ -23,6 +23,8 @@ class ReviewsController extends Controller
     // Public Methods
     // =========================================================================
     public function actionBusiness() {
+        $businessUnit = Trustpilot::$plugin->businessUnitsService->returnBusinessUnit(Craft::parseEnv(Trustpilot::$plugin->getSettings()->trustpilotUrl));
+
         return $this->renderTemplate('trustpilot/reviews/_business');
     }
     public function actionCategories() {
