@@ -23,9 +23,14 @@ class ReviewsController extends Controller
     // Public Methods
     // =========================================================================
     public function actionBusiness() {
-        $businessUnit = Trustpilot::$plugin->businessUnitsService->returnBusinessUnit(Craft::parseEnv(Trustpilot::$plugin->getSettings()->trustpilotUrl));
+        $businessUnitId = Trustpilot::$plugin->businessUnitsService->returnBusinessUnit(Craft::parseEnv(Trustpilot::$plugin->getSettings()->trustpilotUrl));
 
-        return $this->renderTemplate('trustpilot/reviews/_business');
+        $data = [
+            'getReviews' => Trustpilot::$plugin->businessUnitsService->getReviews($businessUnitId),
+            'getProfile' => Trustpilot::$plugin->businessUnitsService->getProfile($businessUnitId)
+        ];
+
+        return $this->renderTemplate('trustpilot/reviews/_business', $data);
     }
     public function actionCategories() {
         return $this->renderTemplate('trustpilot/reviews/_categories');

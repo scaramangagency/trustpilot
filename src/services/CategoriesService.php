@@ -73,7 +73,7 @@ class CategoriesService extends Component
      *
      * @return bool|JSON
      */
-    public function getBusinessUnitsByCategory(int $categoryId, string $locale = 'en-GB', string $country = 'GB', int $page = 0) {
+    public function getBusinessUnitsByCategory(int $categoryId, string $locale = 'en-GB', string $country = 'GB', int $page = 1) {
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
         if (!$apiKey) {

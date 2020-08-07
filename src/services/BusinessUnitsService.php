@@ -31,41 +31,6 @@ class BusinessUnitsService extends Component
     // =========================================================================
 
     /**
-     * Show all the private reviews written about a business unit
-     * 
-     * @param string $businessUnitId
-     * @param int $page
-     * @param string $orderBy [createdat.asc, createdat.desc, stars.asc or stars.desc]
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitPrivateReviews(string $businessUnitId, int $page = 0, string $orderBy = 'createdat.desc') {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->setHeader('Authorization', 'Bearer ' . $token);
-        $result->get('https://api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/reviews', array(
-            'page' => $page,
-            'orderBy' => $orderBy,
-            'perPage' => 100
-        ));
-
-        $result = $result->response;
-        
-        if (!isset($result->reviews)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
      * Show all the public reviews written about a business unit
      * 
      * @param string $businessUnitId
@@ -74,7 +39,7 @@ class BusinessUnitsService extends Component
      *
      * @return bool|JSON
      */
-    public function getBusinessUnitReviews(string $businessUnitId, int $page = 0, string $orderBy = 'createdat.desc') {
+    public function getReviews(string $businessUnitId, int $page = 1, string $orderBy = 'createdat.desc') {
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
         if (!$apiKey) {
@@ -90,247 +55,9 @@ class BusinessUnitsService extends Component
             'perPage' => 100
         ));
 
-        $result = $result->response;
-        
-        if (!isset($result->reviews)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
+        $result = json_decode($result->response);
 
-        return $result;
-    }
-
-    /**
-     * Show all links to the business unit's public profile page on Trustpilot
-     * 
-     * @param string $businessUnitId
-     * @param string $locale
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitWebLinks(string $businessUnitId, string $locale = 'en-GB') {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/web-links', array(
-            'apikey' => $apiKey,
-            'locale' => $locale
-        ));
-
-        $result = $result->response;
-        
-        if (!isset($result->locale)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Show all business units, regardless of review count
-     * 
-     * @param string $country
-     * @param int $page
-     *
-     * @return bool|JSON
-     */
-    public function getAllBusinessUnits(string $country = 'en-GB', int $page) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/all', array(
-            'country' => $country,
-            'page' => $page,
-            'perPage' => 1000
-        ));
-
-        $result = $result->response;
-        
-        if (!isset($result->businessUnits)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Show all business units with one more reviews
-     * 
-     * @param string $country
-     * @param int $page
-     *
-     * @return bool|JSON
-     */
-    public function getFilteredBusinessUnits(string $country = 'en-GB', int $page) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units', array(
-            'country' => $country,
-            'page' => $page,
-            'perPage' => 1000
-        ));
-
-        $result = $result->response;
-        
-        if (!isset($result->businessUnits)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get logo for specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitLogo(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/images/logo');
-
-        $result = $result->response;
-        
-        if (!isset($result->logoUrl)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the company's Guarantee Box information for a specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitGuaranteeBox(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/customerguarantee');
-
-        $result = $result->response;
-        
-        if (!isset($result->body)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the company profile image for a specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitImages(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/images');
-
-        $result = $result->response;
-        
-        if (!isset($result->profileImage)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get company profile information for a specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitProfileInformation(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/profileinfo');
-
-        $result = $result->response;
-        
-        if (!isset($result->description)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the company's Promotion Box information for a specific business unit.
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitProfilePromotion(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/profilepromotion');
-
-        $result = $result->response;
-        
-        if (!isset($result->description)) {
+        if (!property_exists($result, 'reviews')) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
         }
@@ -345,7 +72,7 @@ class BusinessUnitsService extends Component
      *
      * @return bool|JSON
      */
-    public function getBusinessUnitBasicInformation(string $businessUnitId) {
+    public function getProfile(string $businessUnitId) {
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
         if (!$apiKey) {
@@ -354,89 +81,39 @@ class BusinessUnitsService extends Component
         }
         
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId);
-
-        $result = $result->response;
-        
-        if (!isset($result->displayName)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get a list of categories for a business unit
-     * 
-     * @param string $businessUnitId
-     * @param string $locale
-     * @param string $country
-     *
-     * @return bool|JSON
-     */
-    public function getBusinessUnitCategoryList(string $businessUnitId, string $locale = 'en-GB', string $country = 'GB') {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/categories', array(
-            'apikey' => $apiKey,
-            'locale' => $locale,
-            'country' => $country
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId, array(
+            'apikey' => $apiKey
         ));
 
-        $result = $result->response;
-        
-        if (!isset($result->categories)) {
+        $result = json_decode($result->response);
+
+        if (!property_exists($result, 'displayName')) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
         }
 
-        return $result;
+        $data = [
+            'trustpilotLink' => Trustpilot::$plugin->businessUnitsService->getProfileUrl($businessUnitId),
+            'companyLogo' => Trustpilot::$plugin->businessUnitsService->getCompanyLogo($businessUnitId),
+            'guaranteeBox' => Trustpilot::$plugin->businessUnitsService->getGuaranteeBox($businessUnitId),
+            'profilePicture' => Trustpilot::$plugin->businessUnitsService->getProfileImage($businessUnitId),
+            'promotion' => Trustpilot::$plugin->businessUnitsService->getProfilePromotion($businessUnitId),
+            'websiteUrl' => $result->websiteUrl,
+            'displayName' => $result->displayName,
+            'trustScore' => $result->score->trustScore,
+            'stars' => $result->score->stars,
+            'count' => [
+                'total' => $result->numberOfReviews->total,
+                'oneStar' => $result->numberOfReviews->oneStar,
+                'twoStars' => $result->numberOfReviews->twoStars,
+                'threeStars' => $result->numberOfReviews->threeStars,
+                'fourStars' => $result->numberOfReviews->fourStars,
+                'fiveStars' => $result->numberOfReviews->fiveStars
+            ]
+        ];
+
+        return $data;
     }
-
-    /**
-     * This method searches for business units, even if you only know part of the name. 
-     * For example, search results for "Trustpilot" would show "trustpilot.com", among others.
-     * 
-     * @param string $query
-     * @param string $country
-     * @param int $page
-     *
-     * @return bool|JSON
-     */
-    public function searchBusinessUnits(string $query, int $page = 0, string $country = 'GB') {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/search', array(
-            'apikey' => $apiKey,
-            'page' => $page,
-            'query' => $query,
-            'perPage' => 100,
-            'country' => $country
-        ));
-
-        $result = $result->response;
-        
-        if (!isset($result->businessUnits)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result;
-    }
-
 
     /**
      * Returns the business unit if it exists in the database, or grabs it from the API if not
@@ -462,15 +139,14 @@ class BusinessUnitsService extends Component
             }
         }
         
-        
         if ($reinit) {
-            return Trustpilot::$plugin->businessUnitsService->findBusinessUnit($name);
+            return Trustpilot::$plugin->businessUnitsService->locateBusinessUnit($name);
         }
 
         return $businessUnitId;
     }
 
-    public function findBusinessUnit(string $name) {
+    public function locateBusinessUnit(string $name) {
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
         if (!$apiKey) {
@@ -486,7 +162,7 @@ class BusinessUnitsService extends Component
 
         $result = json_decode($result->response);
         
-        if (!isset($result->displayName)) {
+        if (!property_exists($result, 'displayName')) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
         }
@@ -511,5 +187,184 @@ class BusinessUnitsService extends Component
         }
 
         return false;
+    }
+
+    /**
+     * Show all links to the business unit's public profile page on Trustpilot
+     * 
+     * @param string $businessUnitId
+     * @param string $locale
+     *
+     * @return bool|JSON
+     */
+    public function getProfileUrl(string $businessUnitId, string $locale = 'en-GB') {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/web-links', array(
+            'apikey' => $apiKey,
+            'locale' => $locale
+        ));
+
+        $result = json_decode($result->response);
+        
+        if (!property_exists($result, 'profileUrl')) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        return $result->profileUrl;
+    }
+
+    /**
+     * Get logo for specific business unit
+     * 
+     * @param string $businessUnitId
+     *
+     * @return bool|JSON
+     */
+    public function getCompanyLogo(string $businessUnitId) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/images/logo', array(
+            'apikey' => $apiKey
+        ));
+
+        $result = json_decode($result->response);
+        
+        if (!property_exists($result, 'logoUrl')) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        return $result->logoUrl;
+    }
+
+    /**
+     * Get the company's Guarantee Box information for a specific business unit
+     * 
+     * @param string $businessUnitId
+     *
+     * @return bool|JSON
+     */
+    public function getGuaranteeBox(string $businessUnitId) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/customerguarantee', array(
+            'apikey' => $apiKey
+        ));
+
+        $result = json_decode($result->response);
+
+        if (!property_exists($result, 'body')) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        $data = [
+            'body' => $result->body,
+            'header' => $result->header,
+            'teaser' => $result->teaser,
+            'image' => $result->image->image184x0->url ?? null
+        ];
+
+        return $data;
+    }
+
+    /**
+     * Get the company profile image for a specific business unit
+     * 
+     * @param string $businessUnitId
+     *
+     * @return bool|JSON
+     */
+    public function getProfileImage(string $businessUnitId) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/images', array(
+            'apikey' => $apiKey
+        ));
+
+        $result = json_decode($result->response);
+        
+        if (!property_exists($result, 'profileImage')) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        return $result->profileImage->image198x149->url;
+    }
+
+    /**
+     * Get the company's Promotion Box information for a specific business unit.
+     * 
+     * @param string $businessUnitId
+     *
+     * @return bool|JSON
+     */
+    public function getProfilePromotion(string $businessUnitId) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/profilepromotion', array(
+            'apikey' => $apiKey
+        ));
+
+        $result = json_decode($result->response);
+        
+        if (!property_exists($result, 'description')) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        $data = [
+            'alternateTitle' => $result->contactInfoTitle,
+            'title' => $result->contactInfoTitle,
+            'description' => [
+                'header' => $result->description->header,
+                'text' => $result->description->text
+            ],
+            'image' => $result->image->image255x0->url,
+            'sellingPoints' => []
+        ];
+
+        foreach ($result->sellingPoints as $sellingPoint) {
+            $arr = [
+                'header' => $sellingPoint->header,
+                'text' => $sellingPoint->text
+            ];
+
+            array_push($data['sellingPoints'], $arr);
+        }
+
+        return $data;
     }
 }

@@ -75,7 +75,7 @@ class AuthenticationService extends Component
             'password' => self::TRUSTPILOT_PASSWORD()
         ));
 
-        $payload = $result->response;
+        $payload = json_decode($result->response);
         
         if (isset($payload->reason)) {
             LogToFile::info('Failed to retrieve access token from Trustpilot', 'Trustpilot');
@@ -99,7 +99,7 @@ class AuthenticationService extends Component
             'refresh_token' => Trustpilot::$plugin->authenticationService->getRefreshToken()
         ));
 
-        $payload = $result->response;
+        $payload = json_decode($result->response);
 
         if (isset($payload->reason)) {
             LogToFile::info('Failed to refresh access token ', 'Trustpilot');

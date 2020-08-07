@@ -38,7 +38,7 @@ class ConsumerService extends Component
      *
      * @return bool|JSON
      */
-    public function getConsumerReviews(int $consumerId, int $page = 0, string $orderBy = 'createdat.desc') {
+    public function getConsumerReviews(int $consumerId, int $page = 1, string $orderBy = 'createdat.desc') {
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
         if (!$apiKey) {
