@@ -7,6 +7,8 @@
     {% for review in getReviews.reviews %}
         <h2>{{ review.title }}</h2>
         <p>{{ review.text }}</p>
+        <a href="reviews/{{ review.id }}">View this review</a>
+        <hr />
     {% endfor %}
     
 {% endset %}

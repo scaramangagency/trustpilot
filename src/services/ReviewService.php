@@ -11,16 +11,20 @@
 namespace scaramangagency\trustpilot\services;
 
 use scaramangagency\trustpilot\Trustpilot;
+use scaramangagency\trustpilot\services\AuthenticationService;
 
 use Craft;
 use craft\base\Component;
+use craft\services\Plugins;
+use putyourlightson\logtofile\LogToFile;
+use Curl\Curl;
 
 /**
  * @author    Scaramanga Agency
  * @package   Trustpilot
  * @since     1.0.0
  */
-class ServiceReviewsService extends Component
+class ReviewService extends Component
 {
     // Public Methods
     // =========================================================================
@@ -94,17 +98,19 @@ class ServiceReviewsService extends Component
      * @return bool|JSON
      */
     public function getReview(string $reviewId) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
             return false;
         }
         
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/private/reviews/' . $reviewId . '/reply');
+        $result->get('https://api.trustpilot.com/v1/reviews/' . $reviewId, array(
+            'apikey' => $apiKey
+        ));
 
-        return $result->response;
+        return json_decode($result->response);
     }
 
     /**

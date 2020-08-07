@@ -96,6 +96,7 @@ class Trustpilot extends Plugin
             'authenticationService' => \scaramangagency\trustpilot\services\AuthenticationService::class,
             'profileService' => \scaramangagency\trustpilot\services\ProfileService::class,
             'reviewsService' => \scaramangagency\trustpilot\services\ReviewsService::class,
+            'reviewService' => \scaramangagency\trustpilot\services\ReviewService::class,
             'resourcesService' => \scaramangagency\trustpilot\services\ResourcesService::class
         ]);
 
@@ -118,7 +119,8 @@ class Trustpilot extends Plugin
                     'trustpilot/reviews/profile' => 'trustpilot/reviews/profile',
                     'trustpilot/reviews/resources' => 'trustpilot/reviews/resources',
                     'trustpilot/reviews/invitation' => 'trustpilot/reviews/invitation',
-                    'trustpilot/reviews/service-reviews' => 'trustpilot/reviews/service-reviews'
+                    'trustpilot/reviews/service-reviews' => 'trustpilot/reviews/service-reviews',
+                    'trustpilot/reviews/<id:[^/]+>' => 'trustpilot/review/index'
                 ]);
             }
         );
