@@ -5,13 +5,11 @@
 } %}
 
 {% set navItems = navItems|merge({
-    business: { title: "Business" },
-    categories: { title: "categories" },
-    'consumer-profile': { title: "consumer-profile" },
-    consumer: { title: "consumer" },
-    invitation: { title: "invitation" },
-    resources: { title: "resources" },
-    'service-reviews': { title: "service-reviews" }
+    '': { title: "Reviews" },
+    profile: { title: "Profile" },
+    resources: { title: "Resources" },
+    invitation: { title: "Invitations" },
+    'service-reviews': { title: "Service Reviews" }
 }) %}
 
 {% set title = 'Reviews' %}
@@ -20,7 +18,7 @@
 {% do view.registerAssetBundle("scaramangagency\\trustpilot\\assetbundles\\trustpilot\\TrustpilotAsset") %}
 {% do view.registerAssetBundle("scaramangagency\\trustpilot\\assetbundles\\indexcpsection\\IndexCPSectionAsset") %}
 
-{% set selectedItem = craft.app.request.getSegment(3)|default("business") %}
+{% set selectedItem = craft.app.request.getSegment(3)|default("") %}
 
 {% block sidebar %}
     <nav>

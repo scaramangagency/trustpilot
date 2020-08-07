@@ -1,1 +1,12 @@
-{% redirect 'trustpilot/reviews/business' %}
+{% extends "trustpilot/layouts/_reviews" %}
+{% import "_includes/forms" as forms %}
+
+{% set content %}
+
+    <h1>Reviews</h1>
+    {% for review in getReviews.reviews %}
+        <h2>{{ review.title }}</h2>
+        <p>{{ review.text }}</p>
+    {% endfor %}
+    
+{% endset %}

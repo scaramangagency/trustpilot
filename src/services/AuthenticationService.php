@@ -109,9 +109,84 @@ class AuthenticationService extends Component
         return Trustpilot::$plugin->authenticationService->handlePayload($payload);
     }
 
+
+    /**
+     * Returns the business unit if it exists in the database, or grabs it from the API if not
+     * 
+     * @param string $name
+     *
+     * @return bool|string
+     */
+    public function returnBusinessUnit(string $name) {
+        $reinit = false;
+
+        $configRecord = TrustpilotRecord::findOne(1);
+        if (!$configRecord) {
+            $reinit = true;
+        }
+
+        if ($configRecord) {
+            $currentTrustpilotUrl = $configRecord->getAttribute('currentTrustpilotUrl') ?? null;
+            $businessUnitId = $configRecord->getAttribute('businessUnitId') ?? null;
+            
+            if ($name != $currentTrustpilotUrl || is_null($businessUnitId)) {
+                $reinit = true;
+            }
+        }
+        
+        if ($reinit) {
+            return Trustpilot::$plugin->businessUnitsService->locateBusinessUnit($name);
+        }
+
+        return $businessUnitId;
+    }
+
+    /**
+     * Find a business unit
+     * 
+     * @param string $name
+     *
+     * @return bool|string
+     */
+    public function locateBusinessUnit(string $name) {
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/business-units/find', array(
+            'name' => $name,
+            'apikey' => $self::API_KEY()
+        ));
+
+        $result = json_decode($result->response);
+        
+        if (!property_exists($result, 'displayName')) {
+            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            return false;
+        }
+
+        $plugin = Craft::$app->getPlugins()->getPlugin('trustpilot');
+
+        if ($plugin !== null) {
+            $configRecord = TrustpilotRecord::findOne(1);
+            
+            if (!$configRecord) {
+                $configRecord = new TrustpilotRecord();
+            }
+
+            $configRecord->setAttribute('currentTrustpilotUrl', $name);
+            $configRecord->setAttribute('businessUnitId', $result->id);
+            $configRecord->setAttribute('createdTimestamp', date('Y-m-d H:m:s', time()));
+            $configRecord->setAttribute('dateCreated', date('Y-m-d H:m:s', time()));
+            $configRecord->setAttribute('dateUpdated', date('Y-m-d H:m:s', time()));
+            $configRecord->save();
+
+            return $result->id;
+        }
+
+        return false;
+    }
+
+
     // Private Methods
     // =========================================================================
-
     /**
      * Grab the refersh token from the database.
      *

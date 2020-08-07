@@ -12,6 +12,7 @@ namespace scaramangagency\trustpilot\services;
 
 use scaramangagency\trustpilot\Trustpilot;
 use scaramangagency\trustpilot\services\AuthenticationService;
+use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
 
 use Craft;
 use craft\base\Component;
@@ -24,21 +25,21 @@ use Curl\Curl;
  * @package   Trustpilot
  * @since     1.0.0
  */
-class ConsumerService extends Component
+class ReviewsService extends Component
 {
     // Public Methods
     // =========================================================================
 
     /**
-     * Get details of a specific category
+     * Show all the public reviews written about a business unit
      * 
-     * @param int $consumerId
+     * @param string $businessUnitId
      * @param int $page
      * @param string $orderBy [createdat.asc, createdat.desc, stars.asc or stars.desc]
      *
      * @return bool|JSON
      */
-    public function getConsumerReviews(int $consumerId, int $page = 1, string $orderBy = 'createdat.desc') {
+    public function getReviews(string $businessUnitId, int $page = 1, string $orderBy = 'createdat.desc') {
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
 
         if (!$apiKey) {
@@ -47,20 +48,21 @@ class ConsumerService extends Component
         }
         
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/consumers/' . $consumerId . '/reviews', array(
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/reviews', array(
             'apikey' => $apiKey,
+            'page' => $page,
             'orderBy' => $orderBy,
-            'perPage' => 100,
-            'page' => $page
+            'perPage' => 100
         ));
 
-        $result = $result->response;
-        
-        if (!isset($result->reviews)) {
+        $result = json_decode($result->response);
+
+        if (!property_exists($result, 'reviews')) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
         }
 
         return $result;
     }
+          
 }

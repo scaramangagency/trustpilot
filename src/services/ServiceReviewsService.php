@@ -31,7 +31,7 @@ class ServiceReviewsService extends Component
      * 
      * @return bool|JSON
      */
-    public function deleteServiceReviewComment(string $reviewId) {
+    public function deleteComment(string $reviewId) {
         $token = Trustpilot::$plugin->authenticationService->getAccessToken();
 
         if (!$token) {
@@ -46,12 +46,54 @@ class ServiceReviewsService extends Component
     }
 
     /**
+     * Prepare review for conversation
+     * @param string $reviewId
+     * 
+     * @return bool|string
+     */
+    public function enableConversation(string $reviewId) {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+
+        if (!$token) {
+            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->post('https://api.trustpilot.com/v1/private/product-reviews/' . $reviewId . '/create-conversation');
+        $result = json_decode($result->response);
+        
+        return $result->conversationId;
+    }
+
+    /**
+     * Add comment to review
+     * @param string $conversationId
+     * 
+     * @return bool|string
+     */
+    public function addComment(string $conversationId) {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+
+        if (!$token) {
+            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->post('https://api.trustpilot.com/v1/private/conversations/' . $conversationId . '/comments');
+        $result = json_decode($result->response);
+        
+        return $result->content;
+    }
+
+    /**
      * Gets the reviews's public information (stars, text, consumer, etc.)
      * @param string $reviewId
      * 
      * @return bool|JSON
      */
-    public function getServiceReview(string $reviewId) {
+    public function getReview(string $reviewId) {
         $token = Trustpilot::$plugin->authenticationService->getAccessToken();
 
         if (!$token) {
@@ -71,7 +113,7 @@ class ServiceReviewsService extends Component
      * 
      * @return bool|JSON
      */
-    public function getServiceReviewLikes(string $reviewId) {
+    public function getLikes(string $reviewId) {
         $token = Trustpilot::$plugin->authenticationService->getAccessToken();
 
         if (!$token) {
@@ -92,7 +134,7 @@ class ServiceReviewsService extends Component
      * 
      * @return bool|JSON
      */
-    public function getServiceReviewWebLinks(string $reviewId, string $locale = 'en-GB') {
+    public function getLink(string $reviewId, string $locale = 'en-GB') {
         $token = Trustpilot::$plugin->authenticationService->getAccessToken();
 
         if (!$token) {
@@ -102,91 +144,6 @@ class ServiceReviewsService extends Component
         
         $result = new Curl();
         $result->get('https://api.trustpilot.com/v1/reviews/' . $reviewId . '/web-links');
-
-        return $result->response;
-    }
-
-    /**
-     * Gets the latest reviews written in a specfic language
-     * @param string $language
-     * @param string $locale
-     * 
-     * @return bool|JSON
-     */
-    public function getServiceReviews(string $language = 'en', string $locale = 'en-GB') {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/reviews/latest', array(
-            'count' => 100,
-            'locale' => $locale,
-            'language' => $language
-        ));
-
-        return $result->response;
-    }
-
-    /**
-     * Gets the a private reviews's public information (stars, text, consumer, etc.)
-     * @param string $reviewId
-     * 
-     * @return bool|JSON
-     */
-    public function getPrivateServiceReview(string $reviewId) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/private/reviews/' . $reviewId);
-
-        return $result->response;
-    }
-
-    /**
-     * Gets the reviews's public information (stars, text, consumer, etc.)
-     * @param string $reviewId
-     * 
-     * @return bool|JSON
-     */
-    public function getServiceReviewTags(string $reviewId) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/private/reviews/' . $reviewId . '/tags');
-
-        return $result->response;
-    }
-
-    /**
-     * Remove a tag from a service review
-     * @param string $reviewId
-     * 
-     * @return bool|JSON
-     */
-    public function deleteServiceReviewTags(string $reviewId) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->delete('https://api.trustpilot.com/v1/private/reviews/' . $reviewId . '/tags');
 
         return $result->response;
     }

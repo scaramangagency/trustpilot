@@ -11,9 +11,13 @@
 namespace scaramangagency\trustpilot\services;
 
 use scaramangagency\trustpilot\Trustpilot;
+use scaramangagency\trustpilot\services\AuthenticationService;
 
 use Craft;
 use craft\base\Component;
+use craft\services\Plugins;
+use putyourlightson\logtofile\LogToFile;
+use Curl\Curl;
 
 /**
  * @author    Scaramanga Agency
@@ -26,7 +30,55 @@ class ResourcesService extends Component
     // =========================================================================
 
     /**
-     * This resource shows you the different sizes that are available, as well as the URLs for the images.
+     * Get the Trustpilot stars.
+     * @param string $score [0, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+     * 
+     * @return bool|JSON
+     */
+    public function getTrustpilotStarImage(string $score) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/resources/images/stars/' . $score, array(
+            'apikey' => $apiKey
+        ));
+
+        $result = json_decode($result->response);
+
+        return $result;
+    }
+
+    /**
+     * Represent the TrustScore as Text. For example: Excellent
+     * @param string $score [0, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+     * 
+     * @return bool|JSON
+     */
+    public function getTrustpilotStarVerbose(string $score) {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+        
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/resources/strings/stars/' . $score, array(
+            'apikey' => $apiKey
+        ));
+        
+        $result = json_decode($result->response);
+
+        return $result;
+    }
+
+    /**
+     * Get Trustpilot icons
      * 
      * @return bool|JSON
      */
@@ -39,15 +91,17 @@ class ResourcesService extends Component
         }
         
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/resources/images/icons');
+        $result->get('https://api.trustpilot.com/v1/resources/images/icons', array(
+            'apikey' => $apiKey
+        ));
 
-        $result = $result->response;
+        $result = json_decode($result->response);
 
         return $result;
     }
 
     /**
-     * This resource shows you the different sizes that are available, as well as the URLs for the images.
+     * Get Trustpilot logos
      * 
      * @return bool|JSON
      */
@@ -60,9 +114,11 @@ class ResourcesService extends Component
         }
         
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/resources/images/logos');
+        $result->get('https://api.trustpilot.com/v1/resources/images/logos', array(
+            'apikey' => $apiKey
+        ));
 
-        $result = $result->response;
+        $result = json_decode($result->response);
 
         return $result;
     }

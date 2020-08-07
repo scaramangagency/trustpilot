@@ -94,7 +94,9 @@ class Trustpilot extends Plugin
 
         $this->setComponents([
             'authenticationService' => \scaramangagency\trustpilot\services\AuthenticationService::class,
-            'businessUnitsService' => \scaramangagency\trustpilot\services\BusinessUnitsService::class,
+            'profileService' => \scaramangagency\trustpilot\services\ProfileService::class,
+            'reviewsService' => \scaramangagency\trustpilot\services\ReviewsService::class,
+            'resourcesService' => \scaramangagency\trustpilot\services\ResourcesService::class
         ]);
 
         Event::on(
@@ -112,12 +114,10 @@ class Trustpilot extends Plugin
             function(RegisterUrlRulesEvent $event) {
                 $event->rules = array_merge($event->rules, [
                     'trustpilot/settings' => 'trustpilot/settings/index',
-                    'trustpilot/reviews/business' => 'trustpilot/reviews/business',
-                    'trustpilot/reviews/categories' => 'trustpilot/reviews/categories',
-                    'trustpilot/reviews/consumer' => 'trustpilot/reviews/consumer',
-                    'trustpilot/reviews/consumer-profile' => 'trustpilot/reviews/consumer-profile',
-                    'trustpilot/reviews/invitation' => 'trustpilot/reviews/invitation',
+                    'trustpilot/reviews/' => 'trustpilot/reviews/index',
+                    'trustpilot/reviews/profile' => 'trustpilot/reviews/profile',
                     'trustpilot/reviews/resources' => 'trustpilot/reviews/resources',
+                    'trustpilot/reviews/invitation' => 'trustpilot/reviews/invitation',
                     'trustpilot/reviews/service-reviews' => 'trustpilot/reviews/service-reviews'
                 ]);
             }
