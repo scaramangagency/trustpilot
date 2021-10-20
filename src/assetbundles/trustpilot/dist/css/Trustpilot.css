@@ -4,8 +4,84 @@
  * Trustpilot CSS
  *
  * @author    Scaramanga Agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  * @link      https://scaramanga.agency
  * @package   Trustpilot
  * @since     1.0.0
  */
+.hidden {
+    display: none;
+}
+.block {
+    display: block;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+}
+
+.pad-t {
+    padding-top: 16px;
+}
+.pad-b {
+    padding-bottom: 16px;
+}
+
+.margin-l {
+    margin-left: 16px;
+}
+.margin-4 {
+    margin: 4px 0;
+}
+.margin-t-0 {
+    margin-top: 0;
+}
+
+.knock {
+    color: #797979;
+}
+
+.review-item {
+    padding: 24px;
+    background-color: #f3f3f3;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    width: 50%;
+}
+.review-item .item-left {
+    width: 30%;
+    max-width: 140px;
+    padding-right: 24px;
+}
+.review-item .item-right {
+    width: 70%;
+}
+.review-item .stars {
+    width: 100%;
+    height: auto;
+}
+
+.pagination {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    padding-top: 24px;
+    border-top: 1px solid #f3f3f3;
+}
+.pagination a,
+.pagination span {
+    color: black;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    margin: 0 4px;
+}
+.pagination a:hover {
+    background-color: #f3f3f3;
+}
+.pagination span.active {
+    background-color: #f3f3f3;
+    border: 1px solid #f3f3f3;
+}

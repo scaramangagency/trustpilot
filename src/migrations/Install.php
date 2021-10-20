@@ -1,54 +1,42 @@
 <?php
 /**
- * craftagram plugin for Craft CMS 3.x
+ * Trustpilot plugin for Craft CMS 3.x
  *
- * Grab Instagram content through the Instagram Basic Display API
+ * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
-namespace scaramangagency\craftagram\migrations;
+namespace scaramangagency\trustpilot\migrations;
 
-use scaramangagency\craftagram\Craftagram;
+use scaramangagency\trustpilot\Trustpilot;
 
 use Craft;
 use craft\config\DbConfig;
 use craft\db\Migration;
 
 /**
- * Class Craftagram
- *
  * @author    Scaramanga Agency
- * @package   Craftagram
- * @since     1.2.0
- *
- * @property  CraftagramServiceService $craftagramService
+ * @package   Trustpilot
+ * @since     1.0.0
  */
-class Install extends Migration {
+class Install extends Migration
+{
     // Public Properties
     // =========================================================================
-
-    /**
-     * @var string The database driver to use
-     */
     public $driver;
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    public function safeUp() {
+    public function safeUp()
+    {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         return $this->createTables();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function safeDown() {
+    public function safeDown()
+    {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         $this->removeTables();
 
@@ -57,38 +45,50 @@ class Install extends Migration {
 
     // Protected Methods
     // =========================================================================
-
-    /**
-     * @return bool
-     */
-    protected function createTables() {
+    protected function createTables()
+    {
         $tablesCreated = false;
 
         $tableSchema = Craft::$app->db->schema->getTableSchema('{{%trustpilot_settings}}');
         if ($tableSchema === null) {
             $tablesCreated = true;
-            $this->createTable(
+            $this->createTable('{{%trustpilot_settings}}', [
+                'id' => $this->primaryKey(),
+                'siteId' => $this->integer()->null(),
+                'apiKey' => $this->text(),
+                'apiSecret' => $this->text(),
+                'trustpilotUsername' => $this->text(),
+                'trustpilotPassword' => $this->text(),
+                'invitationSenderEmail' => $this->text(),
+                'invitationSenderName' => $this->text(),
+                'invitationReplyToEmail' => $this->text(),
+                'trustpilotUrl' => $this->text(),
+                'accessToken' => $this->text(),
+                'refreshToken' => $this->text(),
+                'businessUnitId' => $this->text(),
+                'currentTrustpilotUrl' => $this->text(),
+                'expiresIn' => $this->text(),
+                'createdTimestamp' => $this->dateTime(),
+                'dateCreated' => $this->dateTime()->notNull(),
+                'dateUpdated' => $this->dateTime()->notNull(),
+                'uid' => $this->uid()
+            ]);
+            $this->addForeignKey(
+                $this->db->getForeignKeyName('{{%trustpilot_settings}}', 'siteId'),
                 '{{%trustpilot_settings}}',
-                [
-                    'id'                => $this->primaryKey(),
-                    'accessToken'       => $this->text(),
-                    'refreshToken'      => $this->text(),
-                    'expiresIn'         => $this->text(),
-                    'createdTimestamp'  => $this->dateTime()->notNull(),
-                    'dateCreated'       => $this->dateTime()->notNull(),
-                    'dateUpdated'       => $this->dateTime()->notNull(),
-                    'uid'               => $this->uid()
-                ]
+                'siteId',
+                '{{%sites}}',
+                'id',
+                'CASCADE',
+                'CASCADE'
             );
         }
 
         return $tablesCreated;
     }
 
-    /**
-     * @return void
-     */
-    protected function removeTables() {
+    protected function removeTables()
+    {
         $this->dropTableIfExists('{{%trustpilot_settings}}');
     }
 }

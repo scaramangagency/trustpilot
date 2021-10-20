@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\records;
@@ -16,17 +16,15 @@ use craft\helpers\StringHelper;
 
 /**
  * @author    Scaramanga Agency
- * @package   Craftagram
- * @since     1.2.0
+ * @package   Trustpilot
+ * @since     1.0.0
  */
-class TrustpilotRecord extends ActiveRecord {
+class TrustpilotRecord extends ActiveRecord
+{
     // Public Static Methods
     // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    public static function tableName(): string {
+    public static function tableName(): string
+    {
         return '{{%trustpilot_settings}}';
     }
 }

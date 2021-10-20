@@ -38,9 +38,6 @@
         "developerUrl": "https://scaramanga.agency",
         "documentationUrl": "https://github.com/scaramangagency/trustpilot/blob/master/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/scaramangagency/trustpilot/master/CHANGELOG.md",
-        "components": {
-            "trustpilotService": "scaramangagency\\trustpilot\\services\\TrustpilotService"
-        },
         "class": "scaramangagency\\trustpilot\\Trustpilot"
     }
 }

@@ -1,0 +1,31 @@
+{% extends '_layouts/cp' %}
+
+{% block header %}
+    {{ block('pageTitle') }}
+    {{ block('languageMenu') }}
+    {{ block('actionButton') }}
+{% endblock %}
+
+{% block languageMenu %}
+    <div id="sites-btn" class="btn menubtn" data-icon="world">
+        {{ craft.app.sites.getSiteById(siteId).name }}
+    </div>
+
+    <div class="menu">
+        {% set siteIds = craft.app.sites.allSiteIds() %}
+        <ul class="padded">
+            {% for id in siteIds %}
+                {% set site = craft.app.sites.getSiteById(id) %}
+                <li>
+                    {% if id == siteId %}
+                        <a class="sel">{{ site.name }}</a>
+                    {% else %}
+                        <a href="{{ cpUrl() }}/trustpilot/settings/{{ site.id }}">{{ site.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
+
+{% do view.registerAssetBundle('scaramangagency\\trustpilot\\assetbundles\\trustpilot\\TrustpilotAsset') %}
