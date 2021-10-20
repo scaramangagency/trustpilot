@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\services;
@@ -17,8 +17,9 @@ use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
 use Craft;
 use craft\base\Component;
 use craft\services\Plugins;
-use putyourlightson\logtofile\LogToFile;
+
 use Curl\Curl;
+use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -29,25 +30,19 @@ class ProfileService extends Component
 {
     // Public Methods
     // =========================================================================
-    /**
-     * Get the business unit's basic public information (name, URL, reviews, etc.)
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|array
-     */
-    public function getProfile(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+    public function getProfile($businessUnitId, $siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
             LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
             return false;
         }
-        
+
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId, array(
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId, [
             'apikey' => $apiKey
-        ));
+        ]);
 
         $result = json_decode($result->response);
 
@@ -57,10 +52,6 @@ class ProfileService extends Component
         }
 
         $data = [
-            'companyLogo' => Trustpilot::$plugin->profileService->getCompanyLogo($businessUnitId),
-            'guaranteeBox' => Trustpilot::$plugin->profileService->getGuaranteeBox($businessUnitId),
-            'profilePicture' => Trustpilot::$plugin->profileService->getProfileImage($businessUnitId),
-            'promotion' => Trustpilot::$plugin->profileService->getProfilePromotion($businessUnitId),
             'websiteUrl' => $result->websiteUrl,
             'displayName' => $result->displayName,
             'trustScore' => $result->score->trustScore,
@@ -78,149 +69,39 @@ class ProfileService extends Component
         return $data;
     }
 
-    /**
-     * Get logo for specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|string
-     */
-    public function getCompanyLogo(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+    public function getTrustpilotPermalink($businessUnitId, $siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
             LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
             return false;
         }
-        
+
+        $site = Craft::$app->sites->getSiteById($siteId);
+        $locale = $site->locale->id;
+
+        $locales = Trustpilot::$plugin->resourcesService->getTrustpilotLocales($siteId)->locales;
+        $key = array_search($locale, $locales) ?? array_search('en-US', $locales);
+
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/images/logo', array(
-            'apikey' => $apiKey
-        ));
-
-        $result = json_decode($result->response);
-        
-        if (!property_exists($result, 'logoUrl')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result->logoUrl;
-    }
-
-    /**
-     * Get the company's Guarantee Box information for a specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|array
-     */
-    public function getGuaranteeBox(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/customerguarantee', array(
-            'apikey' => $apiKey
-        ));
+        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/web-links', [
+            'apikey' => $apiKey,
+            'locale' => !$key ? 'en-US' : $locales[$key]->locale
+        ]);
 
         $result = json_decode($result->response);
 
-        if (!property_exists($result, 'body')) {
+        if (!property_exists($result, 'profileUrl')) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
         }
 
         $data = [
-            'body' => $result->body,
-            'header' => $result->header,
-            'teaser' => $result->teaser,
-            'image' => $result->image->image184x0->url ?? null
+            'profileUrl' => $result->profileUrl,
+            'evaluateEmbedUrl' => $result->evaluateEmbedUrl,
+            'evaluateUrl' => $result->evaluateUrl
         ];
-
-        return $data;
-    }
-
-    /**
-     * Get the company profile image for a specific business unit
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|string
-     */
-    public function getProfileImage(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/images', array(
-            'apikey' => $apiKey
-        ));
-
-        $result = json_decode($result->response);
-        
-        if (!property_exists($result, 'profileImage')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $result->profileImage->image198x149->url;
-    }
-
-    /**
-     * Get the company's Promotion Box information for a specific business unit.
-     * 
-     * @param string $businessUnitId
-     *
-     * @return bool|array
-     */
-    public function getProfilePromotion(string $businessUnitId) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/profilepromotion', array(
-            'apikey' => $apiKey
-        ));
-
-        $result = json_decode($result->response);
-        
-        if (!property_exists($result, 'description')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        $data = [
-            'alternateTitle' => $result->contactInfoTitle,
-            'title' => $result->contactInfoTitle,
-            'description' => [
-                'header' => $result->description->header,
-                'text' => $result->description->text
-            ],
-            'image' => $result->image->image255x0->url,
-            'sellingPoints' => []
-        ];
-
-        foreach ($result->sellingPoints as $sellingPoint) {
-            $arr = [
-                'header' => $sellingPoint->header,
-                'text' => $sellingPoint->text
-            ];
-
-            array_push($data['sellingPoints'], $arr);
-        }
 
         return $data;
     }

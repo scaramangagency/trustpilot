@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\assetbundles\trustpilot;
@@ -29,19 +29,13 @@ class TrustpilotAsset extends AssetBundle
      */
     public function init()
     {
-        $this->sourcePath = "@scaramangagency/trustpilot/assetbundles/trustpilot/dist";
+        $this->sourcePath = '@scaramangagency/trustpilot/assetbundles/trustpilot/dist';
 
-        $this->depends = [
-            CpAsset::class,
-        ];
+        $this->depends = [CpAsset::class];
 
-        $this->js = [
-            'js/Trustpilot.js',
-        ];
+        $this->js = ['js/Trustpilot.js'];
 
-        $this->css = [
-            'css/Trustpilot.css',
-        ];
+        $this->css = ['css/Trustpilot.css'];
 
         parent::init();
     }

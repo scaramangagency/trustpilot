@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\services;
@@ -17,8 +17,9 @@ use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
 use Craft;
 use craft\base\Component;
 use craft\services\Plugins;
-use putyourlightson\logtofile\LogToFile;
+
 use Curl\Curl;
+use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -29,40 +30,32 @@ class ReviewsService extends Component
 {
     // Public Methods
     // =========================================================================
+    public function getReviews($businessUnitId, $siteId, $limit = 12, $page = 1)
+    {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
-    /**
-     * Show all the public reviews written about a business unit
-     * 
-     * @param string $businessUnitId
-     * @param int $page
-     * @param string $orderBy [createdat.asc, createdat.desc, stars.asc or stars.desc]
-     *
-     * @return bool|JSON
-     */
-    public function getReviews(string $businessUnitId, int $page = 1, string $orderBy = 'createdat.desc') {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+        if (!$token) {
+            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
             return false;
         }
-        
+
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/' . $businessUnitId . '/reviews', array(
-            'apikey' => $apiKey,
+        $result->setHeader('Authorization', 'Bearer ' . $token);
+        $result->get('https://api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/reviews', [
             'page' => $page,
-            'orderBy' => $orderBy,
-            'perPage' => 100
-        ));
+            'perPage' => $limit
+        ]);
 
         $result = json_decode($result->response);
 
         if (!property_exists($result, 'reviews')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
+            LogToFile::info('Failed to get data from Trustpilot. Result: ' . json_encode($result), 'Trustpilot');
+            Craft::$app
+                ->getSession()
+                ->setError(Craft::t('app', 'Unable to connect to Trustpilot. Please check your settings.'));
+            return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('trustpilot/settings/' . $siteId));
         }
 
         return $result;
     }
-          
 }

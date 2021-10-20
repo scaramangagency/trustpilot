@@ -1,0 +1,95 @@
+{% requirePermission 'trustpilot:invitations' %}
+
+{% extends 'trustpilot/layouts/_trustpilot' %}
+{% import '_includes/forms' as forms %}
+{% set title = 'Invitations' %}
+{% set selectedSubnavItem = 'invitations' %}
+
+{% set content %}
+    <form method="post">
+        {{ csrfInput() }}
+        <input type="hidden" name="action" value="trustpilot/invitations/create-invitation" />
+        {% namespace 'invitation' %}
+        <input type="hidden" name="templateId" value="{{ data.templateList.id }}" />
+        <input type="hidden" name="siteId" value="{{ siteId }}" />
+
+        {{
+            forms.textField({
+                label: 'Invitation email',
+                instructions: 'Which email should this invitation be sent to?',
+                id: 'email',
+                name: 'email',
+                type: 'email',
+                required: 'required',
+                value: invitation.email,
+                errors: invitation.getErrors('email')
+            })
+        }}
+
+        {{
+            forms.textField({
+                label: 'Invitation name',
+                instructions: 'What is the name of this invitee?',
+                id: 'name',
+                name: 'name',
+                required: 'required',
+                value: invitation.name,
+                errors: invitation.getErrors('name')
+            })
+        }}
+
+        {{
+            forms.textField({
+                label: 'Redirect URI',
+                instructions: 'Where to redirect your customer to once they have completed the review? This will default to your public Trustpilot page',
+                id: 'redirectUri',
+                name: 'redirectUri',
+                value: invitation.redirectUri,
+                errors: invitation.getErrors('redirectUri')
+            })
+        }}
+        {% endnamespace %}
+        <input type="submit" class="submit btn" value="{{ 'Save'|t }}" />
+    </form>
+    <hr />
+    <h2>
+        Generate review link
+    </h2>
+    <form method="post">
+        {{ csrfInput() }}
+        <input type="hidden" name="action" value="trustpilot/invitations/get-service-review-link" />
+
+        {% namespace 'link' %}
+        <input type="hidden" name="siteId" value="{{ siteId }}" />
+
+        {{
+            forms.textField({
+                label: 'Customer email',
+                id: 'email',
+                name: 'email',
+                type: 'email',
+                required: 'required',
+                value: link.email,
+                errors: link.getErrors('email')
+            })
+        }}
+
+        {{
+            forms.textField({
+                label: 'Customer name',
+                id: 'name',
+                name: 'name',
+                required: 'required',
+                value: link.name,
+                errors: link.getErrors('name')
+            })
+        }}
+        {% endnamespace %}
+        <input type="submit" class="submit btn" value="{{ 'Generate'|t }}" />
+        {% if reviewLink %}
+            <div id="alerts">
+                {{ reviewLink.url }}
+            </div>
+        {% endif %}
+    </form>
+{% endset %}

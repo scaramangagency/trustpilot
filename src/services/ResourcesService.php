@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\services;
@@ -16,8 +16,9 @@ use scaramangagency\trustpilot\services\AuthenticationService;
 use Craft;
 use craft\base\Component;
 use craft\services\Plugins;
-use putyourlightson\logtofile\LogToFile;
+
 use Curl\Curl;
+use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -28,95 +29,95 @@ class ResourcesService extends Component
 {
     // Public Methods
     // =========================================================================
-
-    /**
-     * Get the Trustpilot stars.
-     * @param string $score [0, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-     * 
-     * @return bool|JSON
-     */
-    public function getTrustpilotStarImage(string $score) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+    public function getTrustpilotStarImage($score, $siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
             LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
             return false;
         }
-        
+
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/resources/images/stars/' . $score, array(
+        $result->get('https://api.trustpilot.com/v1/resources/images/stars/' . $score, [
             'apikey' => $apiKey
-        ));
+        ]);
 
         $result = json_decode($result->response);
 
         return $result;
     }
 
-    /**
-     * Represent the TrustScore as Text. For example: Excellent
-     * @param string $score [0, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-     * 
-     * @return bool|JSON
-     */
-    public function getTrustpilotStarVerbose(string $score) {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+    public function getTrustpilotStarVerbose($score, $siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
             LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
             return false;
         }
-        
+
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/resources/strings/stars/' . $score, array(
+        $result->get('https://api.trustpilot.com/v1/resources/strings/stars/' . $score, [
             'apikey' => $apiKey
-        ));
-        
-        $result = json_decode($result->response);
-
-        return $result;
-    }
-
-    /**
-     * Get Trustpilot icons
-     * 
-     * @return bool|JSON
-     */
-    public function getTrustpilotIcons() {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
-
-        if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/resources/images/icons', array(
-            'apikey' => $apiKey
-        ));
+        ]);
 
         $result = json_decode($result->response);
 
         return $result;
     }
 
-    /**
-     * Get Trustpilot logos
-     * 
-     * @return bool|JSON
-     */
-    public function getTrustpilotLogos() {
-        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey();
+    public function getTrustpilotIcons($siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
             LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
             return false;
         }
-        
+
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/resources/images/logos', array(
+        $result->get('https://api.trustpilot.com/v1/resources/images/icons', [
             'apikey' => $apiKey
-        ));
+        ]);
+
+        $result = json_decode($result->response);
+
+        return $result;
+    }
+
+    public function getTrustpilotLogos($siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/resources/images/logos', [
+            'apikey' => $apiKey
+        ]);
+
+        $result = json_decode($result->response);
+
+        return $result;
+    }
+
+    public function getTrustpilotLocales($siteId)
+    {
+        $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
+
+        if (!$apiKey) {
+            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            return false;
+        }
+
+        $result = new Curl();
+        $result->get('https://api.trustpilot.com/v1/resources/metadata/locales', [
+            'apikey' => $apiKey
+        ]);
 
         $result = json_decode($result->response);
 

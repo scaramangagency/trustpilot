@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\services;
@@ -15,9 +15,11 @@ use scaramangagency\trustpilot\records\TrustpilotRecord as TrustpilotRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\UrlHelper;
 use craft\services\Plugins;
-use putyourlightson\logtofile\LogToFile;
+
 use Curl\Curl;
+use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -26,137 +28,136 @@ use Curl\Curl;
  */
 class AuthenticationService extends Component
 {
-    public static function API_KEY() { return Craft::parseEnv(Trustpilot::$plugin->getSettings()->apiKey); }
-    public static function API_SECRET() { return Craft::parseEnv(Trustpilot::$plugin->getSettings()->apiSecret); }
-    public static function TRUSTPILOT_USERNAME() { return Craft::parseEnv(Trustpilot::$plugin->getSettings()->trustpilotUsername); }
-    public static function TRUSTPILOT_PASSWORD() { return Craft::parseEnv(Trustpilot::$plugin->getSettings()->trustpilotPassword); }
+    public static function ACCESS_RECORD($siteId)
+    {
+        $params = [
+            'siteId' => $siteId
+        ];
+
+        $accessRecord = TrustpilotRecord::findOne($params);
+
+        if (!$accessRecord) {
+            LogToFile::info('Trustpilot has not been set up for this site.', 'Trustpilot');
+            return '';
+        }
+
+        return $accessRecord;
+    }
+
+    public static function API_KEY($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['apiKey']);
+    }
+    public static function API_SECRET($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['apiSecret']);
+    }
+    public static function TRUSTPILOT_URL($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotUrl']) ?? null;
+    }
+    public static function TRUSTPILOT_USERNAME($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotUsername']);
+    }
+    public static function TRUSTPILOT_PASSWORD($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotPassword']);
+    }
+    public static function TRUSTPILOT_SENDER_EMAIL($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['invitationSenderEmail']);
+    }
+    public static function TRUSTPILOT_SENDER_NAME($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['invitationSenderName']);
+    }
+    public static function TRUSTPILOT_REPLY_TO($siteId)
+    {
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['invitationReplyToEmail']);
+    }
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * Returns the access token for OAuth requests. Will generate key if it doesn't exist, or refresh if it has expired.
-     *
-     * @return string
-     */
-    public function getAccessToken() {
-        $configRecord = TrustpilotRecord::findOne(1); 
+    public function getAccessToken($siteId)
+    {
+        $configRecord = self::ACCESS_RECORD($siteId);
         $createdStamp = strtotime($configRecord->getAttribute('createdTimestamp'));
         $expiresIn = $configRecord->getAttribute('expiresIn');
 
-        if (!$configRecord || ($createdStamp + $expiresIn) < time()) {
-            return Trustpilot::$plugin->authenticationService->setAccessToken();
+        if (!$configRecord || $createdStamp + $expiresIn < time()) {
+            return Trustpilot::$plugin->authenticationService->setAccessToken($siteId);
         }
 
         return $configRecord->getAttribute('accessToken');
     }
 
-    /**
-     * Returns the API Key defined in the settings
-     *
-     * @return string
-     */
-    public function getApiKey() {
-        return self::API_KEY();
+    public function getApiKey($siteId)
+    {
+        return self::API_KEY($siteId);
     }
 
-    /**
-     * Grabs the access token for OAuth requests from Trustpilot
-     *
-     * @return bool|string
-     */
-    public function setAccessToken() {
+    public function getTrustpilotUrl($siteId)
+    {
+        return self::TRUSTPILOT_URL($siteId);
+    }
+
+    public function setAccessToken($siteId)
+    {
         $result = new Curl();
-        $result->setHeader('Authorization', 'Basic ' . base64_encode(self::API_KEY() . ':' . self::API_SECRET()));
+        $result->setHeader(
+            'Authorization',
+            'Basic ' . base64_encode(self::API_KEY($siteId) . ':' . self::API_SECRET($siteId))
+        );
         $result->setHeader('Content-Type', 'application/x-www-form-urlencoded');
-        $result->post('https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/accesstoken', array(
+        $result->post('https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/accesstoken', [
             'grant_type' => 'password',
-            'username' => self::TRUSTPILOT_USERNAME(),
-            'password' => self::TRUSTPILOT_PASSWORD()
-        ));
+            'username' => self::TRUSTPILOT_USERNAME($siteId),
+            'password' => self::TRUSTPILOT_PASSWORD($siteId)
+        ]);
 
         $payload = json_decode($result->response);
-        
+
         if (isset($payload->reason)) {
             LogToFile::info('Failed to retrieve access token from Trustpilot', 'Trustpilot');
             return false;
         }
 
-        return Trustpilot::$plugin->authenticationService->handlePayload($payload);
+        return Trustpilot::$plugin->authenticationService->handlePayload($payload, $siteId);
     }
 
-    /**
-     * Refreshes the access token
-     *
-     * @return bool|string
-     */
-    public function refreshAccessToken() {
-        $result = new Curl();
-        $result->setHeader('Authorization', 'Basic ' . base64_encode(self::API_KEY() . ':' . self::API_SECRET()));
-        $result->setHeader('Content-Type', 'application/x-www-form-urlencoded');
-        $result->post('https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/refresh', array(
-            'grant_type' => 'refresh_token',
-            'refresh_token' => Trustpilot::$plugin->authenticationService->getRefreshToken()
-        ));
-
-        $payload = json_decode($result->response);
-
-        if (isset($payload->reason)) {
-            LogToFile::info('Failed to refresh access token ', 'Trustpilot');
-            return false;
-        }
-
-        return Trustpilot::$plugin->authenticationService->handlePayload($payload);
-    }
-
-
-    /**
-     * Returns the business unit if it exists in the database, or grabs it from the API if not
-     * 
-     * @param string $name
-     *
-     * @return bool|string
-     */
-    public function returnBusinessUnit(string $name) {
+    public function returnBusinessUnitId($name, $siteId)
+    {
         $reinit = false;
 
-        $configRecord = TrustpilotRecord::findOne(1);
-        if (!$configRecord) {
-            $reinit = true;
-        }
+        $configRecord = self::ACCESS_RECORD($siteId);
 
         if ($configRecord) {
             $currentTrustpilotUrl = $configRecord->getAttribute('currentTrustpilotUrl') ?? null;
             $businessUnitId = $configRecord->getAttribute('businessUnitId') ?? null;
-            
+
             if ($name != $currentTrustpilotUrl || is_null($businessUnitId)) {
                 $reinit = true;
             }
         }
-        
+
         if ($reinit) {
-            return Trustpilot::$plugin->businessUnitsService->locateBusinessUnit($name);
+            return Trustpilot::$plugin->authenticationService->locateBusinessUnit($name, $siteId);
         }
 
         return $businessUnitId;
     }
 
-    /**
-     * Find a business unit
-     * 
-     * @param string $name
-     *
-     * @return bool|string
-     */
-    public function locateBusinessUnit(string $name) {
+    public function locateBusinessUnit($name, $siteId, $verbose = false)
+    {
         $result = new Curl();
-        $result->get('https://api.trustpilot.com/v1/business-units/find', array(
+        $result->get('https://api.trustpilot.com/v1/business-units/find', [
             'name' => $name,
-            'apikey' => $self::API_KEY()
-        ));
+            'apikey' => self::API_KEY($siteId)
+        ]);
 
         $result = json_decode($result->response);
-        
+
         if (!property_exists($result, 'displayName')) {
             LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
             return false;
@@ -165,58 +166,33 @@ class AuthenticationService extends Component
         $plugin = Craft::$app->getPlugins()->getPlugin('trustpilot');
 
         if ($plugin !== null) {
-            $configRecord = TrustpilotRecord::findOne(1);
-            
-            if (!$configRecord) {
-                $configRecord = new TrustpilotRecord();
+            if (!$verbose) {
+                $configRecord = self::ACCESS_RECORD($siteId);
+
+                $configRecord->setAttribute('currentTrustpilotUrl', $name);
+                $configRecord->setAttribute('businessUnitId', $result->id);
+                $configRecord->setAttribute('createdTimestamp', date('Y-m-d H:m:s', time()));
+                $configRecord->setAttribute('dateCreated', date('Y-m-d H:m:s', time()));
+                $configRecord->setAttribute('dateUpdated', date('Y-m-d H:m:s', time()));
+                $configRecord->save();
+
+                return $result->id;
+            } else {
+                return $result;
             }
-
-            $configRecord->setAttribute('currentTrustpilotUrl', $name);
-            $configRecord->setAttribute('businessUnitId', $result->id);
-            $configRecord->setAttribute('createdTimestamp', date('Y-m-d H:m:s', time()));
-            $configRecord->setAttribute('dateCreated', date('Y-m-d H:m:s', time()));
-            $configRecord->setAttribute('dateUpdated', date('Y-m-d H:m:s', time()));
-            $configRecord->save();
-
-            return $result->id;
         }
 
         return false;
     }
 
-
     // Private Methods
     // =========================================================================
-    /**
-     * Grab the refersh token from the database.
-     *
-     * @return bool|string
-     */
-    private function getRefreshToken() {
-        $configRecord = TrustpilotRecord::findOne(1); 
-
-        if (!$configRecord) {
-            LogToFile::info('An access token has not been obtained from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
-        return $configRecord->getAttribute('refreshToken');
-    }
-
-    /**
-     * Save the Trustpilot OAuth response to the database
-     *
-     * @return bool|string
-     */
-    private function handlePayload($payload) {
+    private function handlePayload($payload, $siteId)
+    {
         $plugin = Craft::$app->getPlugins()->getPlugin('trustpilot');
 
         if ($plugin !== null) {
-            $configRecord = TrustpilotRecord::findOne(1);
-            
-            if (!$configRecord) {
-                $configRecord = new TrustpilotRecord();
-            }
+            $configRecord = self::ACCESS_RECORD($siteId);
 
             $configRecord->setAttribute('accessToken', $payload->access_token);
             $configRecord->setAttribute('refreshToken', $payload->refresh_token);

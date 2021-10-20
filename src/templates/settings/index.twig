@@ -1,24 +1,127 @@
-{% requirePermission "trustpilot:settings" %}
+{% requirePermission 'trustpilot:settings' %}
 
-{% extends "_layouts/cp" %}
-
-{% import "_includes/forms" as forms %}
-
-{% set tabs = {
-    "general": { label: "General", url: "#general" },
-    "api": { label: "API", url: "#api" }
-} %}
+{% extends 'trustpilot/layouts/_trustpilot' %}
+{% import '_includes/forms' as forms %}
 
 {% set fullPageForm = true %}
 {% set title = 'Settings' %}
 {% set selectedSubnavItem = 'settings' %}
 
 {% set content %}
-
-    <input type="hidden" name="action" value="trustpilot/settings/save-plugin-settings">
+    <input type="hidden" name="action" value="trustpilot/settings/save-plugin-settings" />
     {{ csrfInput() }}
 
-    {% include "trustpilot/settings/pages/_general.twig" %}
-    {% include "trustpilot/settings/pages/_api.twig" %}
+    {% namespace 'settings' %}
+    <input type="hidden" name="siteId" value="{{ siteId }}" />
 
+    {{
+        forms.autosuggestField({
+            label: 'Trustpilot Website URL',
+            instructions: 'Enter the URL linked to your Trustpilot account',
+            id: 'trustpilotUrl',
+            name: 'trustpilotUrl',
+            required: 'required',
+            value: settings.trustpilotUrl,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('trustpilotUrl')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Invitation Sender Email',
+            instructions: 'Which email address should Trustpilot invitations be sent from?',
+            id: 'invitationSenderEmail',
+            name: 'invitationSenderEmail',
+            required: 'required',
+            value: settings.invitationSenderEmail,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('invitationSenderEmail')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Invitation Sender Name',
+            instructions: 'Which name should Trustpilot invitations be sent from?',
+            id: 'invitationSenderName',
+            name: 'invitationSenderName',
+            required: 'required',
+            value: settings.invitationSenderName,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('invitationSenderName')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Invitation Reply-To',
+            instructions: 'What is the reply to address of your Trustpilot invitations?',
+            id: 'invitationReplyToEmail',
+            name: 'invitationReplyToEmail',
+            required: 'required',
+            value: settings.invitationReplyToEmail,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('invitationReplyToEmail')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Trustpilot API Key',
+            id: 'apiKey',
+            name: 'apiKey',
+            required: 'required',
+            value: settings.apiKey,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('apiKey')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Trustpilot API Secret',
+            id: 'apiSecret',
+            name: 'apiSecret',
+            required: 'required',
+            value: settings.apiSecret,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('apiSecret')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Trustpilot Username',
+            id: 'trustpilotUsername',
+            name: 'trustpilotUsername',
+            required: 'required',
+            value: settings.trustpilotUsername,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('trustpilotUsername')
+        })
+    }}
+
+    {{
+        forms.autosuggestField({
+            label: 'Trustpilot Password',
+            id: 'trustpilotPassword',
+            name: 'trustpilotPassword',
+            required: 'required',
+            value: settings.trustpilotPassword,
+            suggestions: craft.cp.getEnvSuggestions(),
+            suggestEnvVars: true,
+            errors: settings.getErrors('trustpilotPassword')
+        })
+    }}
+
+    <input type="submit" class="submit btn" value="{{ 'Save'|t }}" />
+    {% endnamespace %}
 {% endset %}

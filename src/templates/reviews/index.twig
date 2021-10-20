@@ -1,14 +1,174 @@
-{% extends "trustpilot/layouts/_reviews" %}
-{% import "_includes/forms" as forms %}
+{% requirePermission 'trustpilot:reviews' %}
+
+{% extends 'trustpilot/layouts/_trustpilot' %}
+{% import '_includes/forms' as forms %}
+
+{% set totalReviews = businessUnit.numberOfReviews.total %}
+{% set pages = totalReviews / 12 %}
+{% set page = craft.app.request.getQueryParam('page') ?? 1 %}
+
+{% set title = 'Service Reviews' %}
+{% set selectedSubnavItem = 'reviews' %}
 
 {% set content %}
+    <div class="container">
+        {% for review in getReviews.reviews %}
+            <div class="review-item {{ loop.index is even ? 'margin-l' }}">
+                <div class="container">
+                    <div class="item-left">
+                        <img src="https://cdn.trustpilot.net/brand-assets/4.1.0/stars/stars-{{ review.stars }}.svg"
+                            class="stars" />
+                        <p class="margin-4">
+                            {{ review.consumer.displayName }}
+                        </p>
+                        <p class="margin-t-0">
+                            {{ review.createdAt|date('short') }}
+                        </p>
+                    </div>
+                    <div class="item-right">
+                        <h2>
+                            {{ review.title }}
+                        </h2>
+                        <p>
+                            {{ review.text }}
+                        </p>
 
-    <h1>Reviews</h1>
-    {% for review in getReviews.reviews %}
-        <h2>{{ review.title }}</h2>
-        <p>{{ review.text }}</p>
-        <a href="reviews/{{ review.id }}">View this review</a>
-        <hr />
-    {% endfor %}
-    
+                        {% if currentUser.can('trustpilot:reviews:comments') %}
+                            <a href="#"
+                                js-review-toggle
+                                data-rev-id-div="{{ review.id }}"
+                                class="btn submit icon {{ review.companyReply ? 'edit' : 'add' }}">
+                                {{ review.companyReply ? 'Edit Reply' : 'Add Reply' }}
+                            </a>
+                        {% else %}
+                            {% if review.companyReply %}
+                                <a href="#" js-review-toggle data-rev-id-div="{{ review.id }}" class="btn submit">
+                                    View reply
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="hidden container pad-t" js-reveal-review data-rev-id="{{ review.id }}">
+                    <div class="item-left knock">
+                        Your reply
+                    </div>
+                    <div class="item-right">
+                        <form method="post">
+                            {% if review.companyReply %}
+                                <div class="pad-b block" js-edit-content>
+                                    {{ review.companyReply.text }}
+                                </div>
+                            {% endif %}
+
+                            {% if currentUser.can('trustpilot:reviews:comments') %}
+                                <input type="hidden" name="action" value="trustpilot/review/add-review-comment" />
+                                {{ csrfInput() }}
+
+                                {% namespace 'review' %}
+                                <input type="hidden" name="reviewId" value="{{ review.id }}" />
+                                <input type="hidden" name="siteId" value="{{ siteId }}" />
+                                <textarea name="comment"
+                                    class="text {{ review.companyReply ? 'hidden' }}"
+                                    js-edit-textarea
+                                    rows="6"
+                                    style="width: 100%; margin-bottom: 16px">
+                                    {%- if review.companyReply -%}
+                                        {{ review.companyReply.text }}
+                                    {%- endif -%}
+                                </textarea>
+                                {% if review.companyReply %}
+                                    <a href="#" class="btn secondary" js-edit-reply>Edit reply</a>
+                                {% endif %}
+                                <input type="submit"
+                                    value="{{ review.companyReply ? 'Update' : 'Add' }} reply"
+                                    js-edit-save
+                                    class="btn submit {{ review.companyReply ? 'hidden' }} " />
+                                {% if review.companyReply %}
+                                    <a href="{{
+                                        cpUrl(
+                                            'trustpilot/review/delete-comment/' ~ siteId ~ '/' ~ review.id
+                                        )
+                                        }}"
+                                        class="btn">
+                                        Delete reply
+                                    </a>
+                                {% endif %}
+                                {% endnamespace %}
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="?page={{ page - 1 }}">&laquo;</a>
+            {% endif %}
+
+            {% set currentArr = [page - 2, page - 1, page, page + 1, page + 2] %}
+
+            {% if 1 not in currentArr %}
+                <a href="?page=1">1</a>
+                {% if 2 not in currentArr %}
+                    <span>...</span>
+                {% endif %}
+            {% endif %}
+
+            {% for i in 1..pages %}
+                {% if i == page %}
+                    <span class="active">{{ i }}</span>
+                {% else %}
+                    {% if i in currentArr %}
+                        <a href="?page={{ i }}">{{ i }}</a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if pages not in currentArr %}
+                {% if pages - 1 not in currentArr %}
+                    <span>...</span>
+                {% endif %}
+
+                <a href="?page={{ pages }}">{{ pages }}</a>
+            {% endif %}
+
+            {% if page < pages %}
+                <a href="?page={{ page + 1 }}">&raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
 {% endset %}
+
+{% js %}
+    {# prettier-ignore-start #}
+    const editButton = document.querySelectorAll('[js-edit-reply]');
+    const revealForm = document.querySelectorAll('[js-review-toggle]');
+
+    revealForm.forEach(e => {
+        e.addEventListener('click', () => {
+            let id = e.dataset.revIdDiv;
+console.log(id);
+            document.querySelector('[data-rev-id="'+id+'"]').classList.toggle('hidden');
+        });
+    });
+
+    editButton.forEach(e => {
+        e.addEventListener('click', () => {
+
+            let editSave = e.parentNode.querySelector('[js-edit-save]');
+            let editTextarea = e.parentNode.querySelector('[js-edit-textarea]');
+            let reviewReply = e.parentNode.querySelector('[js-edit-content]');
+
+            editSave.classList.toggle('hidden');
+            editTextarea.classList.toggle('hidden');
+            reviewReply.classList.toggle('hidden');
+            e.classList.toggle('hidden');
+        });
+    });
+    {# prettier-ignore-end #}
+{% endjs %}

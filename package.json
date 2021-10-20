@@ -1,0 +1,7 @@
+{
+    "dependencies": {
+        "@prettier/plugin-php": "^0.16.2",
+        "prettier-plugin-twig-melody": "^0.4.6",
+        "tall": "^4.0.1"
+    }
+}

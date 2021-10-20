@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\services;
@@ -17,8 +17,9 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\StringHelper;
 use craft\services\Plugins;
-use putyourlightson\logtofile\LogToFile;
+
 use Curl\Curl;
+use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -29,153 +30,103 @@ class InvitationService extends Component
 {
     // Public Methods
     // =========================================================================
-
-    /**
-     * Triggers email invitation(s).
-     * 
-     * @param string $businessUnitId
-     * 
-     * @param array $products An array of product data
-     *              { "preferredSendTime": "2013-09-07T13:37:00",
-     *                "redirectUri": "http://trustpilot.com",
-     *                "templateId": "507f191e810c19729de860ea"
-     *                products: { 
-     *                  "sku": "ABC-1234", 
-     *                  "name": "Metal Toy Car", 
-     *                  "productUrl": "http://www.mycompanystore.com/products/12345.htm", 
-     *                  "imageUrl": "http://www.mycompanystore.com/products/images/12345.jpg" 
-     *                }
-     *              }
-     * 
-     * @param array $serviceReviewInvitation An array for service reviewing
-     *              { "preferredSendTime": "2013-09-07T13:37:00",
-     *                "redirectUri": "http://trustpilot.com"
-     *                "templateId": "507f191e810c19729de860ea" }
-     * 
-     * @param array $consumer An array of consumer information
-     *              { "consumerEmail": "joe.bloggs@example.com",
-     *                "consumerName": "Joe Bloggs" }
-     * 
-     * @return bool
-     */
-    public function createInvitation(string $businessUnitId, array $products, array $serviceReviewInvitation, array $consumer) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+    public function createInvitation($siteId, $businessUnitId, $serviceReviewInvitation, $consumer)
+    {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
             LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
             return false;
         }
-        
-        $result = new Curl();
 
-        $data = array(
-            'consumerEmail' => $consumer->email,
-            'consumerName' => $consumer->name,
+        $data = [
+            'consumerEmail' => $consumer['email'],
+            'consumerName' => $consumer['name'],
             'referenceNumber' => StringHelper::UUID(),
-            'replyTo' => Craft::parseEnv(Trustpilot::$plugin->getSettings()->invitationReplyToEmail),
-            'senderEmail' => Craft::parseEnv(Trustpilot::$plugin->getSettings()->invitationSenderEmail),
-            'senderName' => Craft::parseEnv(Trustpilot::$plugin->getSettings()->invitationSenderName),
+            'replyTo' => AuthenticationService::TRUSTPILOT_REPLY_TO($siteId),
+            'senderEmail' => AuthenticationService::TRUSTPILOT_SENDER_EMAIL($siteId),
+            'senderName' => AuthenticationService::TRUSTPILOT_SENDER_NAME($siteId),
             'serviceReviewInvitation' => $serviceReviewInvitation
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt(
+            $ch,
+            CURLOPT_URL,
+            'https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/email-invitations'
         );
 
-        return $result->post('https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/email-invitation', $data);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $token]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        if (is_object(json_decode($result))) {
+            return ['success' => false, 'message' => json_decode($result)->details];
+        }
+
+        return ['success' => true];
     }
 
-    /**
-     * Delete invitation data.
-     * 
-     * @param string $businessUnitId
-     * @param date $date
-     * @param array $emails
-     * 
-     * @return bool
-     */
-    public function deleteInvitationData(string $businessUnitId, timestamp $date, array $emails) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
+    public function generateServiceReviewInvitationLink($siteId, $businessUnitId, $consumer)
+    {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
             LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
             return false;
         }
-        
+
+        $site = Craft::$app->sites->getSiteById($siteId);
+        $locale = $site->locale->id;
+
+        $locales = Trustpilot::$plugin->resourcesService->getTrustpilotLocales($siteId)->locales;
+        $key = array_search($locale, $locales) ?? array_search('en-US', $locales);
+
         $result = new Curl();
-
-        if ($emails) {
-            $data = array(
-                'customerEmails' => $emails,
-            );
-        } else {
-            $data = array(
-                'deleteOlderThan' => $date
-            );
-        }
-
-        return $result->post('https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/invitation-data/delete', $data);
-    }
-
-    /**
-     * Generate a unique invitation link that can be sent to a consumer by email or website.
-     * 
-     * @param string $businessUnitId
-     * @param array $consumer An array of consumer information
-     *              { "consumerEmail": "joe.bloggs@example.com",
-     *                "consumerName": "Joe Bloggs" }
-     * @param string $redirectUri
-     * 
-     * @return bool|string
-     */
-    public function generateServiceReviewInvitationLink(string $businessUnitId, array $consumer, string $redirectUri) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
-        if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
-            return false;
-        }
-        
-        $result = new Curl();
-
-        $data = array(
-            'email' => $consumer->email,
-            'name' => $consumer->name,
+        $result->setHeader('Authorization', 'Bearer ' . $token);
+        $data = [
+            'email' => $consumer['email'],
+            'name' => $consumer['name'],
             'referenceId' => StringHelper::UUID(),
-            'redirectUri' => $redirectUri
+            'locale' => !$key ? 'en-US' : $locales[$key]->locale
+        ];
+        $result->post(
+            'https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/invitation-links',
+            $data
         );
-        
-        $result->post('https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/invitation-links', $data);
         $result = $result->response;
-
-        if (!isset($result->url)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
-
         return $result;
     }
 
-    /**
-     * Returns a list of ID and Names of the templates available to be used in invitations
-     * 
-     * @param string $businessUnitId
-     * 
-     * @return bool|string
-     */
-    public function getInvitationTemplateList(string $businessUnitId) {
-        $token = Trustpilot::$plugin->authenticationService->getAccessToken();
-
+    public function getTemplateList($siteId)
+    {
+        $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
         if (!$token) {
             LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
             return false;
         }
-        
+
+        $trustpilotUrl = Trustpilot::$plugin->authenticationService->getTrustpilotUrl($siteId);
+        $businessUnitId = Trustpilot::$plugin->authenticationService->returnBusinessUnitId($trustpilotUrl, $siteId);
+
         $result = new Curl();
-        $result->post('https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/invitation-links');
-        $result = $result->response;
+        $result->setHeader('Authorization', 'Bearer ' . $token);
 
-        if (!isset($result->templates)) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
-            return false;
-        }
+        $result->get(
+            'https://invitations-api.trustpilot.com/v1/private/business-units/' . $businessUnitId . '/templates'
+        );
 
-        return $result;
+        $site = Craft::$app->sites->getSiteById($siteId);
+        $locale = $site->locale->id;
+
+        $result = json_decode($result->response)->templates;
+        $key = array_search($locale, $result) ?? array_search('en-US', $result);
+
+        return $result[$key];
     }
 }

@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\models;
@@ -24,15 +24,11 @@ class Settings extends Model
 {
     // Public Properties
     // =========================================================================
-
-    /**
-     * @var string
-     */
     public $apiKey;
     public $apiSecret;
     public $trustpilotUsername;
     public $trustpilotPassword;
-
+    public $siteId;
 
     public $accessToken;
     public $refreshToken;
@@ -48,14 +44,23 @@ class Settings extends Model
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    public function rules() {
+    public function rules()
+    {
         return [
-            [['apiKey', 'apiSecret', 'trustpilotUsername', 'trustpilotPassword',
-              'invitationSenderEmail', 'invitationSenderName', 'invitationReplyToEmail', 'trustpilotUrl'], 'required'],
+            [
+                [
+                    'apiKey',
+                    'apiSecret',
+                    'trustpilotUsername',
+                    'trustpilotPassword',
+                    'invitationSenderEmail',
+                    'invitationSenderName',
+                    'invitationReplyToEmail',
+                    'trustpilotUrl',
+                    'siteId'
+                ],
+                'required'
+            ],
             [['accessToken', 'refreshToken', 'expiresIn', 'createdTimestamp'], 'string']
         ];
     }

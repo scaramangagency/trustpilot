@@ -5,7 +5,7 @@
  * Interact with Trustpilot APIs
  *
  * @link      https://scaramanga.agency
- * @copyright Copyright (c) 2020 Scaramanga Agency
+ * @copyright Copyright (c) 2021 Scaramanga Agency
  */
 
 namespace scaramangagency\trustpilot\controllers;
@@ -20,16 +20,19 @@ use craft\web\Controller;
 
 class ReviewController extends Controller
 {
+    public function actionAddReviewComment()
+    {
+        $this->requirePostRequest();
+        $data = Craft::$app->getRequest()->getBodyParam('review', []);
+        $review = Trustpilot::$plugin->reviewService->addComment($data['siteId'], $data['reviewId'], $data['comment']);
 
-    // Public Methods
-    // =========================================================================
-    public function actionIndex($id) {
-        $review = Trustpilot::$plugin->reviewService->getReview($id);
+        return $this->redirect(Craft::$app->getRequest()->referrer);
+    }
 
-        $data = [
-            'review' => $review
-        ];
+    public function actionDeleteReviewComment($siteId, $reviewId)
+    {
+        $review = Trustpilot::$plugin->reviewService->deleteComment($siteId, $reviewId);
 
-        return $this->renderTemplate('trustpilot/review/index', $data);
+        return $this->redirect(Craft::$app->getRequest()->referrer);
     }
 }
