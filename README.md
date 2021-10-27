@@ -43,8 +43,8 @@ The following options are available under the _Settings_ tab:
 
 -   **Trustpilot username** &mdash; Your Trustpilot username.
 -   **Trustpilot password** &mdash; Your Trustpilot password.
--   **Trustpilot API Key** &mdash; Your Trustpilot password.
--   **Trustpilot API Secret** &mdash; Your Trustpilot password.
+-   **Trustpilot API Key** &mdash; Your Trustpilot API key.
+-   **Trustpilot API Secret** &mdash; Your Trustpilot API secret.
 
 You can learn how to create your API key and API secret by visiting Trustpilot's [own documentation](https://support.trustpilot.com/hc/en-us/articles/207309867-Introduction-to-Trustpilot-APIs#create-api-application-2)
 
@@ -75,7 +75,11 @@ Displays all reviews in your Trustpilot account. You can click ‘Add reply’ t
 
 ## Using Trustpilot in your templates
 
-There are a variety of variables you can use in your templates.  
+There are a variety of variables you can use in your templates. Note that each variable returns an object without any styling, so it's on the developer to take those object and add the appropriate markup and styling. 
+
+### On Caching
+
+This plugin will make a request to the Trustpilot API for every request. We recommend that the output of the call can be cached either natively with Craft or with a static page cache (which should already be included on your website if it's been efficiently optimised).
 
 ### getAllReviews
 
