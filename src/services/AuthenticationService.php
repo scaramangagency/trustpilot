@@ -36,9 +36,10 @@ class AuthenticationService extends Component
 
         $accessRecord = TrustpilotRecord::findOne($params);
 
-        if (!$accessRecord) {
+        if (!$accessRecord)
+        {
             LogToFile::info('Trustpilot has not been set up for this site.', 'Trustpilot');
-            return '';
+            return false;
         }
 
         return $accessRecord;
@@ -46,34 +47,74 @@ class AuthenticationService extends Component
 
     public static function API_KEY($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['apiKey']);
     }
     public static function API_SECRET($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['apiSecret']);
     }
     public static function TRUSTPILOT_URL($siteId)
     {
-        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotUrl']) ?? null;
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
+        return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotUrl']);
     }
     public static function TRUSTPILOT_USERNAME($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+        
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotUsername']);
     }
     public static function TRUSTPILOT_PASSWORD($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['trustpilotPassword']);
     }
     public static function TRUSTPILOT_SENDER_EMAIL($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['invitationSenderEmail']);
     }
     public static function TRUSTPILOT_SENDER_NAME($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['invitationSenderName']);
     }
     public static function TRUSTPILOT_REPLY_TO($siteId)
     {
+        if (!self::ACCESS_RECORD($siteId))
+        {
+            return null;
+        }
+
         return Craft::parseEnv(self::ACCESS_RECORD($siteId)['invitationReplyToEmail']);
     }
 
@@ -82,10 +123,17 @@ class AuthenticationService extends Component
     public function getAccessToken($siteId)
     {
         $configRecord = self::ACCESS_RECORD($siteId);
+
+        if (!$configRecord)
+        {
+            return Trustpilot::$plugin->authenticationService->setAccessToken($siteId);
+        }
+
         $createdStamp = strtotime($configRecord->getAttribute('createdTimestamp'));
         $expiresIn = $configRecord->getAttribute('expiresIn');
 
-        if (!$configRecord || $createdStamp + $expiresIn < time()) {
+        if ($createdStamp + $expiresIn < time())
+        {
             return Trustpilot::$plugin->authenticationService->setAccessToken($siteId);
         }
 

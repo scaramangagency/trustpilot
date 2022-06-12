@@ -29,6 +29,12 @@ class InvitationsController extends Controller
             $siteId = Craft::$app->sites->primarySite->id;
         }
 
+        $trustpilotUrl = Trustpilot::$plugin->authenticationService->getTrustpilotUrl($siteId);
+        
+        if (!$trustpilotUrl) {
+            return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('trustpilot/settings/' . $siteId));
+        }
+
         $data = [
             'siteId' => $siteId,
             'templateList' => Trustpilot::$plugin->invitationService->getTemplateList($siteId)
