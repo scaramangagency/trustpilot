@@ -18,7 +18,6 @@ use craft\base\Component;
 use craft\services\Plugins;
 
 use Curl\Curl;
-use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -34,7 +33,7 @@ class ReviewService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 
@@ -51,7 +50,7 @@ class ReviewService extends Component
         $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve get access token from database or Trustpilot.');
             return false;
         }
         $result = new Curl();
@@ -68,7 +67,7 @@ class ReviewService extends Component
         $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve get access token from database or Trustpilot.');
             return false;
         }
 

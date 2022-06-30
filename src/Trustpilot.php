@@ -26,6 +26,11 @@ use craft\web\twig\variables\CraftVariable;
 
 use yii\base\Event;
 
+use craft\log\MonologTarget;
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
+use yii\log\Logger;
+
 /**
  * Class Trustpilot
  *
@@ -42,11 +47,11 @@ class Trustpilot extends Plugin
 
     // Public Properties
     // =========================================================================
-    public $schemaVersion = '1.0.0';
+    public string $schemaVersion = '2.0.0';
 
-    public $hasCpSettings = true;
+    public bool $hasCpSettings = true;
 
-    public $hasCpSection = true;
+    public bool $hasCpSection = true;
 
     // Public Methods
     // =========================================================================
@@ -85,9 +90,19 @@ class Trustpilot extends Plugin
         });
 
         Craft::info(Craft::t('trustpilot', '{name} plugin loaded', ['name' => $this->name]), __METHOD__);
+
+        $this->_registerLogTarget();
     }
 
-    public function getCpNavItem()
+    /**
+     * Logs a message
+     */
+    public function log(string $message, int $type = Logger::LEVEL_INFO): void
+    {
+        Craft::getLogger()->log($message, $type, 'trustpilot');
+    }
+
+    public function getCpNavItem(): ?array
     {
         $cpNav = parent::getCpNavItem();
         $subNavs = [];
@@ -114,7 +129,7 @@ class Trustpilot extends Plugin
         return $cpNav;
     }
 
-    public function getSettingsResponse()
+    public function getSettingsResponse(): mixed
     {
         Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('trustpilot/settings'));
     }
@@ -164,9 +179,29 @@ class Trustpilot extends Plugin
         });
     }
 
+    /**
+     * Registers a custom log target, keeping the format as simple as possible.
+     *
+     * @see LineFormatter::SIMPLE_FORMAT
+     */
+    private function _registerLogTarget(): void
+    {
+        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
+            'name' => 'trustpilot',
+            'categories' => ['trustpilot'],
+            'level' => LogLevel::INFO,
+            'logContext' => false,
+            'allowLineBreaks' => false,
+            'formatter' => new LineFormatter(
+                format: "[%datetime%] %message%\n",
+                dateFormat: 'Y-m-d H:i:s',
+            ),
+        ]);
+    }
+
     // Protected Methods
     // =========================================================================
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?\craft\base\Model
     {
         return new Settings();
     }

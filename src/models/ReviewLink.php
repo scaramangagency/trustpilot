@@ -29,7 +29,7 @@ class ReviewLink extends Model
 
     // Public Methods
     // =========================================================================
-    public function rules()
+    public function rules(): array
     {
         return [[['email', 'name'], 'required']];
     }

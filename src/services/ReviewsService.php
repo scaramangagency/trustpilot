@@ -19,7 +19,6 @@ use craft\base\Component;
 use craft\services\Plugins;
 
 use Curl\Curl;
-use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -35,7 +34,7 @@ class ReviewsService extends Component
         $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve get access token from database or Trustpilot.');
             return false;
         }
 
@@ -49,7 +48,7 @@ class ReviewsService extends Component
         $result = json_decode($result->response);
 
         if (!property_exists($result, 'reviews')) {
-            LogToFile::info('Failed to get data from Trustpilot. Result: ' . json_encode($result), 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve data from Trustpilot. Result: ' . json_encode($result));
             Craft::$app
                 ->getSession()
                 ->setError(Craft::t('app', 'Unable to connect to Trustpilot. Please check your settings.'));

@@ -19,7 +19,6 @@ use craft\base\Component;
 use craft\services\Plugins;
 
 use Curl\Curl;
-use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -35,7 +34,7 @@ class ProfileService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database');
             return false;
         }
 
@@ -47,7 +46,7 @@ class ProfileService extends Component
         $result = json_decode($result->response);
 
         if (!property_exists($result, 'displayName')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to get data from Trustpilot.');
             return false;
         }
 
@@ -74,7 +73,7 @@ class ProfileService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 
@@ -93,7 +92,7 @@ class ProfileService extends Component
         $result = json_decode($result->response);
 
         if (!property_exists($result, 'profileUrl')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve data from Trustpilot.');
             return false;
         }
 

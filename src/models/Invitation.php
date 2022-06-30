@@ -33,7 +33,7 @@ class Invitation extends Model
 
     // Public Methods
     // =========================================================================
-    public function rules()
+    public function rules(): array
     {
         return [[['email', 'name', 'templateId', 'siteId'], 'required'], ['redirectUri', 'string']];
     }

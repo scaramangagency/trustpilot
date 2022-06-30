@@ -1,8 +1,8 @@
-# Trustpilot plugin for Craft CMS 3.x
+# Trustpilot plugin for Craft CMS 4.x
 
 ## Requirements
 
-This plugin requires Craft CMS 3.1.0 or later.
+This plugin requires Craft CMS 4.0.0 or later.
 
 ## Before you begin
 

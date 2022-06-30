@@ -2,7 +2,7 @@
     "name": "scaramangagency/trustpilot",
     "description": "Interact with Trustpilot APIs",
     "type": "craft-plugin",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -22,13 +22,12 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.1.0",
-        "curl/curl": "^2.3",
-        "putyourlightson/craft-log-to-file": "^1.2"
+        "craftcms/cms": "^4.0.0",
+        "curl/curl": "^2.3"
     },
     "autoload": {
         "psr-4": {
-          "scaramangagency\\trustpilot\\": "src/"
+            "scaramangagency\\trustpilot\\": "src/"
         }
     },
     "extra": {

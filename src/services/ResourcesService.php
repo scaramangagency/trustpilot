@@ -18,7 +18,6 @@ use craft\base\Component;
 use craft\services\Plugins;
 
 use Curl\Curl;
-use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -34,7 +33,7 @@ class ResourcesService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 
@@ -53,7 +52,7 @@ class ResourcesService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 
@@ -72,7 +71,7 @@ class ResourcesService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 
@@ -91,7 +90,7 @@ class ResourcesService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 
@@ -110,7 +109,7 @@ class ResourcesService extends Component
         $apiKey = Trustpilot::$plugin->authenticationService->getApiKey($siteId);
 
         if (!$apiKey) {
-            LogToFile::info('Failed to retrieve API Key from database', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve API Key from database.');
             return false;
         }
 

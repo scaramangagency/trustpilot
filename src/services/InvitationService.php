@@ -19,7 +19,6 @@ use craft\helpers\StringHelper;
 use craft\services\Plugins;
 
 use Curl\Curl;
-use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -35,7 +34,7 @@ class InvitationService extends Component
         $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve get access token from database or Trustpilot.');
             return false;
         }
 
@@ -77,7 +76,7 @@ class InvitationService extends Component
         $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
 
         if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve get access token from database or Trustpilot.');
             return false;
         }
 
@@ -107,7 +106,7 @@ class InvitationService extends Component
     {
         $token = Trustpilot::$plugin->authenticationService->getAccessToken($siteId);
         if (!$token) {
-            LogToFile::info('Failed to retrieve get access token from database or Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve get access token from database or Trustpilot.');
             return false;
         }
 

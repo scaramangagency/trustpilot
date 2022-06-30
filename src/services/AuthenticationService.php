@@ -19,7 +19,6 @@ use craft\helpers\UrlHelper;
 use craft\services\Plugins;
 
 use Curl\Curl;
-use putyourlightson\logtofile\LogToFile;
 
 /**
  * @author    Scaramanga Agency
@@ -38,7 +37,7 @@ class AuthenticationService extends Component
 
         if (!$accessRecord)
         {
-            LogToFile::info('Trustpilot has not been set up for this site.', 'Trustpilot');
+            Trustpilot::$plugin->log('Trustpilot has not been set up for this site.');
             return false;
         }
 
@@ -167,7 +166,7 @@ class AuthenticationService extends Component
         $payload = json_decode($result->response);
 
         if (isset($payload->reason)) {
-            LogToFile::info('Failed to retrieve access token from Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to retrieve access token from Trustpilot.');
             return false;
         }
 
@@ -207,7 +206,7 @@ class AuthenticationService extends Component
         $result = json_decode($result->response);
 
         if (!property_exists($result, 'displayName')) {
-            LogToFile::info('Failed to get data from Trustpilot', 'Trustpilot');
+            Trustpilot::$plugin->log('Failed to get data from Trustpilot.');
             return false;
         }
 
